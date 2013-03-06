@@ -4,6 +4,7 @@ rnormal = random.normal
 uniform = random.uniform
 randint = random.randint
 
+
 # Centered normal random deviate
 normal_deviate = lambda var : rnormal(0,var)
 
