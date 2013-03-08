@@ -5,7 +5,7 @@ Markov chain Monte Carlo (MCMC) simulation, implementing an adaptive form of ran
 # Import system functions
 import sys, time, unittest, pdb
 from test import test_support
-  
+from pymc import *  
 # Import numpy functions
 from numpy import random, linalg
 # Generalized inverse

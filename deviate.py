@@ -1,5 +1,5 @@
 from numpy import random
-from random import normal
+from numpy import log
 rnormal = random.normal
 uniform = random.uniform
 randint = random.randint
