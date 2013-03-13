@@ -3,7 +3,7 @@ from numpy import log
 rnormal = random.normal
 uniform = random.uniform
 randint = random.randint
-
+exponential = random.exponential
 
 # Centered normal random deviate
 normal_deviate = lambda var : rnormal(0,var)
@@ -20,3 +20,9 @@ def double_exponential_deviate(beta):
     if u<0.5:
         return beta*log(2*u)
     return -beta*log(2*(1-u))
+
+# create "Independent exponential distributed random deviates with mean one"
+def generater_expo(beta, size):
+    return exponential(beta, size)-beta
+
+
