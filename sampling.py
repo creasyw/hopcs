@@ -1,5 +1,3 @@
-from gen_signal import generate_signal, spectrogram
-from detect_peak import detect_peak, spread
 import numpy as np
 from math import ceil, log
 from fractions import gcd
@@ -102,23 +100,37 @@ def visualize_rxx (r_xx, Fs, NFFT):
         psd[:,i] = r_xx[ind[i]:(ind[i]+NFFT),0][:numFreqs]
     return psd, freqs, t
 
-def main (signal, Fs, NFFT, N, M, output='psd'):
-    # check the property of co-prime
-    assert gcd(N,M) == 1, "The pair a and b should be co-prime."
-    assert M > 1 and N > 1, "M and N should be both bigger than 1."
-    # make sure that a is larger than b
-    if N < M:
-        temp = M
-        M = N
-        N = temp
-    # the times of moving for window
+def test_coprime (input):
+    if len(input)<=1: return False
+    for i in range(len(input)):
+        if input[i]<=0: return False
+        for j in range(i+1, len(input)):
+            if gcd(input[i],input[j])!=1: return False
+    return True
+
+def main (file, NFFT, coprime_list):
+    # preprocessing
+    assert test_coprime(comprime_list), "The input coprime list is illegal."
+    coprime_list.sort()
+    product = reduce(lambda x,y: x*y, coprime_list)
+    if product > NFFT:
+        print "Warning: There might be blind spots in a FFT segmentation"
+    num_cell = ceil(float(NFFT)/product)
+   
+    signal = np.load(file)
     steps = int(ceil(len(signal)/float(NFFT)))
+    
     # calculate the range to generate hole-free co-prime combinations 
-    n1 = np.arange(0,N)*M
-    n2 = np.arange(-M+1,M)*N
-    # if MN > windwo_size, there will be several times of sampling within a FFT window
-    k = M*N-1
-    num_cell = ceil(float(NFFT)/k)
+    if len(coprime_list) == 3:
+        # Then there is no need for change sampling function
+        coprime_list = np.append(coprime_list, coprime_list[-1])
+    
+    n0 = np.arange(-product/coprime_list[0]+1, product/coprime_list[0])*coprime_list[0]
+    n1 = np.arange(-product/coprime_list[1]+1, product/coprime_list[1])*coprime_list[1]
+    # ASSUME only higher order involves
+    n2 = np.arange(-product/coprime_list[2]+1, product/coprime_list[2])*coprime_list[2]
+    n3 = np.arange(-product/coprime_list[3]+1, product/coprime_list[3])*coprime_list[3]
+    
     # r_xx with the same length of signal to store and average estimations
     # 1st column is the value of autocorrelation
     # 2nd column is the # of sample points contribute to this autocorrelation
@@ -136,9 +148,9 @@ def main (signal, Fs, NFFT, N, M, output='psd'):
         while in_step < num_cell:
             temp1, temp2 = sampling(signal, n1, n2, zero+in_step*k)
             if len(temp1) != 0:
-                x1[in_step*len(n1):in_step*len(n1)+len(temp1),:] = temp1
+                x1[in_step*N:in_step*N+len(temp1),:] = temp1
             if len(temp2) != 0:
-                x2[in_step*len(n2):in_step*len(n2)+len(temp2),:] = temp2
+                x2[in_step*M:in_step*M+len(temp2),:] = temp2
             in_step += 1
         r_xx = autocorrelation(r_xx, x1, x2, zero)
         in_step = 0
@@ -151,6 +163,5 @@ def main (signal, Fs, NFFT, N, M, output='psd'):
         raise ValueError("The output definition is incorrect (psd or autocorrelation).")
     #psd = plot_contour(time, freq, psd)
     return abs(psd), freq, time
-
 
 
