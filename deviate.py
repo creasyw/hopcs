@@ -1,9 +1,9 @@
-from numpy import random
+import numpy as np
 from numpy import log
-rnormal = random.normal
-uniform = random.uniform
-randint = random.randint
-exponential = random.exponential
+rnormal = np.random.normal
+uniform = np.random.uniform
+randint = np.random.randint
+exponential = np.random.exponential
 
 # Centered normal random deviate
 normal_deviate = lambda var : rnormal(0,var)
@@ -25,4 +25,9 @@ def double_exponential_deviate(beta):
 def generater_expo(beta, size):
     return exponential(beta, size)-beta
 
+def save_signal(beta):
+    # generate enough length of random data with given distribution
+    length = 7*8*9*11*128
+    signal = generater_expo(beta,length)
+    np.save("exp_deviate_%d.npz", signal)
 
