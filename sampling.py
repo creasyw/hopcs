@@ -138,12 +138,12 @@ def main (NFFT, coprime_list, signalfile='', pcsfile=''):
             pcs[counter] = np.load(filename)
             print "For this slot, the length of sampled sequence is ", len(pcs[counter])
             counter += 1
+        #TODO: sanity check for coprime pairs and the loaded PCS
     else:
         signal = np.load(signalfile)
         pcs = sampling(signal, NFFT, coprime_list)
         for i in range(len(pcs)):
             np.save("pcs_data_%d.npy"%(coprime_list[i]), pcs[i])
-    print "everthing done"
 
 if __name__ == "__main__":
     # dealing with new signal and meanwhile dumping PCS
