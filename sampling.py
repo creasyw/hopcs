@@ -3,32 +3,46 @@ from math import ceil, log
 from fractions import gcd
 import matplotlib.pyplot as plt
 
-def autocorrelation (r_xx, x1, x2, zero):
+norm = lambda m: (reduce(lambda acc, itr: acc+itr**2, m, 0))**0.5
+
+def estc2 (pcs, cplst, NFFT):
     """
-    Calculate the autocorrelation operating upon the r_xx.
-    Return the modified array of autocorrelation.
-    Input:  r_xx: previous autocorrelation.
-            x1, x2: co-prime sampled signal.
-            zero: relative zero point along with moving window.
+    Return estimated 2nd order statistics (autocorrelation coefficients).
+    Input:  pcs: the loaded PCS (in a dictionary).
+            cplst: the list of pairwise coprime factors.
+            Note that the elements index in cplst should be corresponding to the key in the pcs.
     """
-    for i in range(len(x1)):
-        if x1[i][1] == 0:
-            continue
-        for j in range(len(x2)):
-            if x2[j][1] == 0:
+    temp = {}
+    threshold = 0.1
+    numlst = [int(ceil(NFFT/k)) for k in cplst]
+    prevrxx = rxx = np.zeros((NFFT, 2))
+    # all four elements in cplist should have the same # of splits
+    # concerning len(pcs[i]/numlst[i]
+    maxstep = len(pcs[0])/numlst[0]
+    count = 0
+    while True:
+        prevrxx = rxx
+        for j in range(len(cplst)):
+            temp[j] = pcs[j][count*numlst[j]:(count+1)*numlst[j]]
+        x1 = temp[0]
+        x2 = temp[1]
+        for i in range(len(x1)):
+            if x1[i][0] == 0:
                 continue
-            index = abs(x1[i][0]-x2[j][0])
-            #if index > 255:
-            #    continue
-            if zero+index < len(r_xx):
-                index += zero
-                if r_xx[index][1] == 0:
-                    r_xx[index][0] = x1[i][1]*(x2[j][1].conj())
-                    r_xx[index][1] += 1
+            for j in range(len(x2)):
+                if x2[j][0] == 0: continue
+                index = abs(x1[i][1]-x2[j][1])
+                if index >= NFFT: continue
+                if rxx[index][1] == 0:
+                    rxx[index][0] = x1[i][0]*(x2[j][0].conj())
+                    rxx[index][1] += 1
                 else:
-                    r_xx[index][0] = (r_xx[index][1]*r_xx[index][0] + x1[i][1]*(x2[j][1].conj())) / (r_xx[index][1]+1)
-                    r_xx[index][1] += 1
-    return r_xx
+                    rxx[index][0] = (rxx[index][1]*rxx[index][0] + x1[i][0]*(x2[j][0].conj())) / (rxx[index][1]+1)
+                    rxx[index][1] += 1
+        rxx = (count*prevrxx+rxx)/(count+1)
+        count += 1
+        if norm((prevrxx-rxx)[:,0]) > threshold: break
+        print count, rxx[:10]
 
 def dft (r_xx, Fs, NFFT, hamming, overlap=True, sides='default'):
     if overlap:
@@ -126,11 +140,13 @@ def main (NFFT, coprime_list, signalfile='', pcsfile=''):
     The specific formats of them refer to the example in the bottom.
     NFFT: the length of FFT
     coprime_list: the list of pairwise coprime numbers.
-    Note that the product for coprime_list should be smaller than NFFT.
+    Note that: 1) the product for coprime_list should be smaller than NFFT.
+               2) EITHER signalfile and pcsfile should be assigned.
     """
     # preprocessing
     assert test_coprime(coprime_list), "The input coprime list is illegal."
     coprime_list.sort()
+    # Load existing PCS datafile from pcsfiles
     if signalfile == '':
         pcs = {}
         counter = 0
@@ -139,11 +155,16 @@ def main (NFFT, coprime_list, signalfile='', pcsfile=''):
             print "For this slot, the length of sampled sequence is ", len(pcs[counter])
             counter += 1
         #TODO: sanity check for coprime pairs and the loaded PCS
+    # without downsampling, only perform coprime sampling and dumping datafile
     else:
         signal = np.load(signalfile)
         pcs = sampling(signal, NFFT, coprime_list)
         for i in range(len(pcs)):
             np.save("pcs_data_%d.npy"%(coprime_list[i]), pcs[i])
+    
+    # loading complete
+    estc2(pcs, coprime_list, NFFT)
+
 
 if __name__ == "__main__":
     # dealing with new signal and meanwhile dumping PCS
