@@ -213,83 +213,74 @@ def main (NFFT, coprime_list, signalfile='', pcsfile=''):
 
 
 
-def full_estc2(NFFT, signal, round):
-    """ round: the # of monte carlo simulation """
-    rxx = np.zeros((NFFT, 2))
-    # For current setting of simulation the 512-FFT window will move 1386 times
-#    maxstep = len(signal)/NFFT
-    # For the sake of saving time of computation, hard coded as 100
-    maxstep = 100
+def full_estc2(signal, delay):
+    length = delay*2+1
+    rxx = np.zeros((length, 2))
+    maxstep = len(signal)/length
+    result = np.zeros((maxstep, length))
 
     count = 0
-    estc2full = []
     while True:
         if count == maxstep: break
-        x = signal[count*NFFT:(count+1)*NFFT]
-        prevrxx = np.array(rxx)
+        x = signal[count*length:(count+1)*length]
         for i in range(len(x)):
             if x[i] == 0: continue
             for j in range(len(x)):
                 if x[j] == 0: continue
-                index = abs(i-j)
-                if index >= NFFT: continue
+                index = i-j+delay
+                if index >= length or index < 0: continue
                 if rxx[index][1] == 0:
-                    rxx[index][0] = x[i]*(x[j].conj())
+                    rxx[index][0] = x[i]*x[j]
                     rxx[index][1] += 1
                 else:
-                    rxx[index][0] = (rxx[index][1]*rxx[index][0] + x[i]*(x[j].conj())) / (rxx[index][1]+1)
+                    rxx[index][0] = (rxx[index][1]*rxx[index][0] + x[i]*x[j]) / (rxx[index][1]+1)
                     rxx[index][1] += 1
+        result[count, :] = rxx[:,0]
         count += 1
-        estc2full.append(norm((prevrxx-rxx)[:,0]))
-        sys.stdout.write("%s\r"%(count))
-        sys.stdout.flush()
-    np.save("result/exp_deviate_estc2_full_%d.npy"%(round), np.array(estc2full))
+    #np.save("result/exp_deviate_estc2_full_%d.npy"%(round), np.array(estc2full))
+    return result
 
-def full_estc3(NFFT, signal, round):
-    """ impractical to use... """
-    rxx = np.zeros((NFFT, NFFT, 2))
+def full_estc3(signal, delay):
+    length = delay*2+1
+    rxx = np.zeros((length, 2))
     # For current setting of simulation the 512-FFT window will move 1386 times
 #    maxstep = len(signal)/NFFT
     # For the sake of saving time of computation, hard coded as 100
-    maxstep = 100
+    maxstep = len(signal)/length
+    result = np.zeros((maxstep, length))
 
     count = 0
-    estc3full = []
     while True:
         if count == maxstep: break
-        x = signal[count*NFFT:(count+1)*NFFT]
-        prevrxx = np.array(rxx)
+        x = signal[count*length:(count+1)*length]
         for i in range(len(x)):
             if x[i] == 0: continue
             for j in range(len(x)):
                 if x[j] == 0: continue
-                for g in range(len(x)):
-                    if x[g] == 0: continue
-                    index1 = abs(i-j)
-                    index2 = abs(i-g)
-                    if index1 >= NFFT or index2 >= NFFT: continue
-                    if rxx[index1][index2][1] == 0:
-                        rxx[index1][index2][0] = x[i]*(x[j].conj())*x[g]
-                        rxx[index1][index2][1] += 1
-                    else:
-                        rxx[index1][index2][0] = (rxx[index1][index2][1]*rxx[index1][index2][0] + x[i]*(x[j].conj())*x[g]) / (rxx[index1][index2][1]+1)
-                        rxx[index1][index2][1] += 1
+                index = i-j+delay
+                if index >= length or index < 0: continue
+                if rxx[index][1] == 0:
+                    rxx[index][0] = x[i]*(x[j]**2)
+                    rxx[index][1] += 1
+                else:
+                    rxx[index][0] = (rxx[index][1]*rxx[index][0] + x[i]*(x[j]**2)) / (rxx[index][1]+1)
+                    rxx[index][1] += 1
+        result[count, :] = rxx[:,0]
         count += 1
-        diff = (prevrxx-rxx)[:,:,0]
-        estc3full.append(sum((diff.reshape(1, diff.shape[0]*diff.shape[1]))**2)**0.5)
-        print estc3full[-1]
-        #sys.stdout.write("%s\r"%(count))
-        #sys.stdout.flush()
-        if count == 10: break
     #np.save("result/exp_deviate_estc2_full_%d.npy"%(round), np.array(estc2full))
+    return result
 
 
-def benchmark(NFFT):
-    nmc = 50
-    for i in range(50):
-        signal = np.load("data/exp_deviate_one_%d.npz.npy"%(i))
-        full_estc2(NFFT, signal, i)
-        print "Completed the round ", i
+def benchmark(output, delay, round):
+    # only consider 2 delays
+    c2 = full_estc2(output, delay,)
+    c3 = full_estc3(output, delay)
+    delta = c2[:,-1]*c3[:,0]/c3[:,-1]
+    b2 = c3[:,-1]/c3[:,0]
+    b1 = c2[:,-2]/(delta*(1+delta)*b2)
+    print "complete round ", round
+    np.save("result/exp_deviate_b1_full_%d.npy"%(round), b1)
+    np.save("result/exp_deviate_b2_full_%d.npy"%(round), b2)
 
 if __name__ == "__main__":
     # dealing with new signal and meanwhile dumping PCS
@@ -300,4 +291,13 @@ if __name__ == "__main__":
 #    main(512, [3,4,5,7], pcsfile = filelist)
 
     # testing the benchmark
-    benchmark(512)
+    nmc = 50
+    for j in range(nmc):
+        signal = np.load("data/exp_deviate_one_%d.npz.npy"%(j))
+        # For 3,4,5,7 (420), using 512*100=51200 points (100 frames)
+        y = np.zeros(51200)
+        b1 = -2.333
+        b2 = 0.667
+        for i in range(len(y)):
+            y[i] = signal[i]+b1*signal[i+1]+b2*signal[i+2]
+        benchmark(y, 2, j)
