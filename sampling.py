@@ -21,6 +21,7 @@ def estc2 (pcs, cplst, NFFT):
     maxstep = len(pcs[0])/numlst[0]
     count = 0
     while True:
+        if count == maxstep: break
         prevrxx = np.array(rxx)
         for j in range(len(cplst)):
             temp[j] = pcs[j][count*numlst[j]:(count+1)*numlst[j]]
@@ -210,9 +211,46 @@ def main (NFFT, coprime_list, signalfile='', pcsfile=''):
     estc2(pcs, coprime_list, NFFT)
 
 
+
+def full_estc2(NFFT, signal):
+    threshold = 0.1
+    rxx = np.zeros((NFFT, 2))
+    maxstep = len(signal)/NFFT
+    count = 0
+    while True:
+        if count == maxstep: break
+        x = signal[count*NFFT:(count+1)*NFFT]
+        prevrxx = np.array(rxx)
+        for i in range(len(x)):
+            if x[i] == 0: continue
+            for j in range(len(x)):
+                if x[j] == 0: continue
+                index = abs(i-j)
+                if index >= NFFT: continue
+                if rxx[index][1] == 0:
+                    rxx[index][0] = x[i]*(x[j].conj())
+                    rxx[index][1] += 1
+                else:
+                    rxx[index][0] = (rxx[index][1]*rxx[index][0] + x[i]*(x[j].conj())) / (rxx[index][1]+1)
+                    rxx[index][1] += 1
+        #rxx = (count*prevrxx+rxx)/(count+1)
+        count += 1
+        print norm((prevrxx-rxx)[:,0])
+        if norm((prevrxx-rxx)[:,0]) <= threshold: print count; break
+        if count==100: break
+
+def benchmark(NFFT, signalfile):
+    signal = np.load(signalfile)
+    full_estc2(NFFT, signal)
+
+
 if __name__ == "__main__":
     # dealing with new signal and meanwhile dumping PCS
 #    main(512, [3,4,5,7], "data/exp_deviate_one.npy")
+    
     # regular experiment processing PCS
-    filelist = ["data/pcs_data_3.npy", "data/pcs_data_4.npy", "data/pcs_data_5.npy", "data/pcs_data_7.npy"]
-    main(512, [3,4,5,7], pcsfile = filelist)
+#    filelist = ["data/pcs_data_3.npy", "data/pcs_data_4.npy", "data/pcs_data_5.npy", "data/pcs_data_7.npy"]
+#    main(512, [3,4,5,7], pcsfile = filelist)
+
+    # testing the benchmark
+    benchmark(512, "data/exp_deviate_one.npy")
