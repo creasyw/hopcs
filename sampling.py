@@ -25,15 +25,15 @@ def estc2 (signal, pcs, cplst, delay, NFFT):
         if count == maxstep: break
         for j in range(len(cplst)):
             temp[j] = pcs[j][count*numlst[j]:(count+1)*numlst[j]]
-        for k in range(len(temp)-1):
-            for g in range(k+1, len(temp)):
+        for k in range(len(temp)):
+            for g in range(len(temp)):
                 x1 = temp[k]
                 x2 = temp[g]
                 for i in range(len(x1)):
                     if x1[i][0] == 0: continue
                     for j in range(len(x2)):
                         if x2[j][0] == 0: continue
-                        index = x2[j][1]-x1[i][1]+delay
+                        index = -x2[j][1]+x1[i][1]+delay
                         if index >= length or index < 0: continue
                         if rxx[index][1] == 0:
                             rxx[index][0] = x1[i][0]*x2[j][0]
@@ -65,16 +65,17 @@ def estc3 (signal, pcs, cplst, delay, NFFT):
         if count == maxstep: break
         for j in range(len(cplst)):
             temp[j] = pcs[j][count*numlst[j]:(count+1)*numlst[j]]
-        for k in range(len(temp)-1):
-            for g in range(k+1, len(temp)):
+        for k in range(len(temp)):
+            for g in range(len(temp)):
                 x1 = temp[k]
                 x2 = temp[g]
                 for i in range(len(x1)):
                     if x1[i][0] == 0: continue
                     for j in range(len(x2)):
                         if x2[j][0] == 0: continue
-                        index = x2[j][1]-x1[i][1]+delay
-                        if index >= length or index < 0: continue
+                        index = -x2[j][1]+x1[i][1]+delay
+                        if index >= length: continue
+                        if index < 0: break
                         if rxx[index][1] == 0:
                             rxx[index][0] = x1[i][0]*(x2[j][0]**2)
                             rxx[index][1] += 1
@@ -82,9 +83,7 @@ def estc3 (signal, pcs, cplst, delay, NFFT):
                             rxx[index][0] = (rxx[index][1]*rxx[index][0] + x1[i][0]*(x2[j][0]**2)) / (rxx[index][1]+1)
                             rxx[index][1] += 1
         result[count, :] = rxx[:,0]
-        print result[count]
         count += 1
-        if count == 100: break
     #np.save("result/exp_deviate_estc2_full_%d.npy"%(round), np.array(estc2full))
     return result
 
@@ -135,14 +134,14 @@ def main (signal, delay, round,  coprime_list):
     assert test_coprime(coprime_list), "The input coprime list is illegal."
     coprime_list.sort()
     pcs = sampling(signal, NFFT, coprime_list)
-#    c2 = estc2(signal, pcs, coprime_list, delay, NFFT)
+    c2 = estc2(signal, pcs, coprime_list, delay, NFFT)
     c3 = estc3(signal, pcs, coprime_list, delay, NFFT)
-#    delta = c2[:,-1]*c3[:,0]/c3[:,-1]
-#    b2 = c3[:,-1]/c3[:,0]
-#    b1 = c2[:,-2]/(delta*(1+delta)*b2)
-#    print "complete round ", round
-#    np.save("result/exp_deviate_b1_cp_%d.npy"%(round), b1)
-#    np.save("result/exp_deviate_b2_cp_%d.npy"%(round), b2)
+    delta = c2[:,-1]*c3[:,0]/c3[:,-1]
+    b2 = c3[:,-1]/c3[:,0]
+    b1 = c2[:,-2]/(delta*(1+delta)*b2)
+    print "complete round ", round
+    np.save("result/exp_deviate_b1_cp_%d.npy"%(round), b1)
+    np.save("result/exp_deviate_b2_cp_%d.npy"%(round), b2)
 
 
 
@@ -218,17 +217,16 @@ if __name__ == "__main__":
     
     # regular experiment processing PCS
 #    filelist = ["data/pcs_data_3.npy", "data/pcs_data_4.npy", "data/pcs_data_5.npy", "data/pcs_data_7.npy"]
-    main(np.load("data/exp_deviate_one.npy"), 2, 0, [3,4,5,7])
 
     # testing the benchmark
-#    nmc = 50
-#    for j in range(nmc):
-#        signal = np.load("data/exp_deviate_one_%d.npz.npy"%(j))
-#        # For 3,4,5,7 (420), using 512*100=51200 points (100 frames)
-#        y = np.zeros(512000)
-#        b1 = -2.333
-#        b2 = 0.667
-#        for i in range(len(y)):
-#            y[i] = signal[i]+b1*signal[i+1]+b2*signal[i+2]
-##        benchmark(y, 2, j)
-#        main(y, 2, j, [3 ,4,5,7])
+    nmc = 50
+    for j in range(nmc):
+        signal = np.load("data/exp_deviate_one_%d.npz.npy"%(j))
+        # For 3,4,5,7 (420), using 512*100=51200 points (100 frames)
+        y = np.zeros(102400)
+        b1 = -2.333
+        b2 = 0.667
+        for i in range(len(y)):
+            y[i] = signal[i]+b1*signal[i+1]+b2*signal[i+2]
+#        benchmark(y, 2, j)
+        main(y, 2, j, [3,4,5,7])
