@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 from math import ceil, log
 from fractions import gcd
@@ -212,11 +213,16 @@ def main (NFFT, coprime_list, signalfile='', pcsfile=''):
 
 
 
-def full_estc2(NFFT, signal):
-    threshold = 0.1
+def full_estc2(NFFT, signal, round):
+    """ round: the # of monte carlo simulation """
     rxx = np.zeros((NFFT, 2))
-    maxstep = len(signal)/NFFT
+    # For current setting of simulation the 512-FFT window will move 1386 times
+#    maxstep = len(signal)/NFFT
+    # For the sake of saving time of computation, hard coded as 100
+    maxstep = 100
+
     count = 0
+    estc2full = []
     while True:
         if count == maxstep: break
         x = signal[count*NFFT:(count+1)*NFFT]
@@ -233,16 +239,57 @@ def full_estc2(NFFT, signal):
                 else:
                     rxx[index][0] = (rxx[index][1]*rxx[index][0] + x[i]*(x[j].conj())) / (rxx[index][1]+1)
                     rxx[index][1] += 1
-        #rxx = (count*prevrxx+rxx)/(count+1)
         count += 1
-        print norm((prevrxx-rxx)[:,0])
-        if norm((prevrxx-rxx)[:,0]) <= threshold: print count; break
-        if count==100: break
+        estc2full.append(norm((prevrxx-rxx)[:,0]))
+        sys.stdout.write("%s\r"%(count))
+        sys.stdout.flush()
+    np.save("result/exp_deviate_estc2_full_%d.npy"%(round), np.array(estc2full))
 
-def benchmark(NFFT, signalfile):
-    signal = np.load(signalfile)
-    full_estc2(NFFT, signal)
+def full_estc3(NFFT, signal, round):
+    """ impractical to use... """
+    rxx = np.zeros((NFFT, NFFT, 2))
+    # For current setting of simulation the 512-FFT window will move 1386 times
+#    maxstep = len(signal)/NFFT
+    # For the sake of saving time of computation, hard coded as 100
+    maxstep = 100
 
+    count = 0
+    estc3full = []
+    while True:
+        if count == maxstep: break
+        x = signal[count*NFFT:(count+1)*NFFT]
+        prevrxx = np.array(rxx)
+        for i in range(len(x)):
+            if x[i] == 0: continue
+            for j in range(len(x)):
+                if x[j] == 0: continue
+                for g in range(len(x)):
+                    if x[g] == 0: continue
+                    index1 = abs(i-j)
+                    index2 = abs(i-g)
+                    if index1 >= NFFT or index2 >= NFFT: continue
+                    if rxx[index1][index2][1] == 0:
+                        rxx[index1][index2][0] = x[i]*(x[j].conj())*x[g]
+                        rxx[index1][index2][1] += 1
+                    else:
+                        rxx[index1][index2][0] = (rxx[index1][index2][1]*rxx[index1][index2][0] + x[i]*(x[j].conj())*x[g]) / (rxx[index1][index2][1]+1)
+                        rxx[index1][index2][1] += 1
+        count += 1
+        diff = (prevrxx-rxx)[:,:,0]
+        estc3full.append(sum((diff.reshape(1, diff.shape[0]*diff.shape[1]))**2)**0.5)
+        print estc3full[-1]
+        #sys.stdout.write("%s\r"%(count))
+        #sys.stdout.flush()
+        if count == 10: break
+    #np.save("result/exp_deviate_estc2_full_%d.npy"%(round), np.array(estc2full))
+
+
+def benchmark(NFFT):
+    nmc = 50
+    for i in range(50):
+        signal = np.load("data/exp_deviate_one_%d.npz.npy"%(i))
+        full_estc2(NFFT, signal, i)
+        print "Completed the round ", i
 
 if __name__ == "__main__":
     # dealing with new signal and meanwhile dumping PCS
@@ -253,4 +300,4 @@ if __name__ == "__main__":
 #    main(512, [3,4,5,7], pcsfile = filelist)
 
     # testing the benchmark
-    benchmark(512, "data/exp_deviate_one.npy")
+    benchmark(512)
