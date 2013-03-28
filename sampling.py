@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 norm = lambda m: (reduce(lambda acc, itr: acc+itr**2, m, 0))**0.5
 
-def estc2 (pcs, cplst, NFFT):
+def estc2 (signal, pcs, cplst, delay, NFFT):
     """
     Return estimated 2nd order statistics (autocorrelation coefficients).
     Input:  pcs: the loaded PCS (in a dictionary).
@@ -14,41 +14,39 @@ def estc2 (pcs, cplst, NFFT):
             Note that the elements index in cplst should be corresponding to the key in the pcs.
     """
     temp = {}
-    threshold = 0.1
+    length = delay*2+1
+    rxx = np.zeros((length, 2))
     numlst = [int(ceil(NFFT/k)) for k in cplst]
-    rxx = np.zeros((NFFT, 2))
-    # all four elements in cplist should have the same # of splits
-    # concerning len(pcs[i]/numlst[i]
-    maxstep = len(pcs[0])/numlst[0]
+    maxstep = int(ceil(len(signal)/float(NFFT)))
+    result = np.zeros((maxstep, length))
+
     count = 0
     while True:
         if count == maxstep: break
-        prevrxx = np.array(rxx)
         for j in range(len(cplst)):
             temp[j] = pcs[j][count*numlst[j]:(count+1)*numlst[j]]
-        x1 = temp[0]
-        x2 = temp[1]
-        for i in range(len(x1)):
-            if x1[i][0] == 0:
-                continue
-            for j in range(len(x2)):
-                if x2[j][0] == 0: continue
-                index = abs(x1[i][1]-x2[j][1])
-                if index >= NFFT: continue
-                if rxx[index][1] == 0:
-                    rxx[index][0] = x1[i][0]*(x2[j][0].conj())
-                    rxx[index][1] += 1
-                else:
-                    rxx[index][0] = (rxx[index][1]*rxx[index][0] + x1[i][0]*(x2[j][0].conj())) / (rxx[index][1]+1)
-                    rxx[index][1] += 1
-        #rxx = (count*prevrxx+rxx)/(count+1)
+        for k in range(len(temp)-1):
+            for g in range(k+1, len(temp)):
+                x1 = temp[k]
+                x2 = temp[g]
+                for i in range(len(x1)):
+                    if x1[i][0] == 0: continue
+                    for j in range(len(x2)):
+                        if x2[j][0] == 0: continue
+                        index = i-j+delay
+                        if index >= length or index < 0: continue
+                        if rxx[index][1] == 0:
+                            rxx[index][0] = x1[i][0]*x2[j][0]
+                            rxx[index][1] += 1
+                        else:
+                            rxx[index][0] = (rxx[index][1]*rxx[index][0] + x1[i][0]*x2[j][0]) / (rxx[index][1]+1)
+                            rxx[index][1] += 1
+        result[count, :] = rxx[:,0]
         count += 1
-        if norm((prevrxx-rxx)[:,0]) <= threshold: print count; break
-        #if count == 100: break
-        #print count, rxx[:10]
-        #print "\n", norm((prevrxx-rxx)[:,0])
+    #np.save("result/exp_deviate_estc2_full_%d.npy"%(round), np.array(estc2full))
+    return result
 
-def estc3 (pcs, cplst, NFFT):
+def estc3 (signal, pcs, cplst, delay, NFFT):
     """
     Return estimated 2nd order statistics (autocorrelation coefficients).
     Input:  pcs: the loaded PCS (in a dictionary).
@@ -56,96 +54,37 @@ def estc3 (pcs, cplst, NFFT):
             Note that the elements index in cplst should be corresponding to the key in the pcs.
     """
     temp = {}
-    threshold = 0.1
+    length = delay*2+1
+    rxx = np.zeros((length, 2))
     numlst = [int(ceil(NFFT/k)) for k in cplst]
-    rxx = np.zeros((NFFT, 2))
-    # all four elements in cplist should have the same # of splits
-    # concerning len(pcs[i]/numlst[i]
-    maxstep = len(pcs[0])/numlst[0]
+    maxstep = int(ceil(len(signal)/float(NFFT)))
+    result = np.zeros((maxstep, length))
+
     count = 0
     while True:
-        prevrxx = np.array(rxx)
+        if count == maxstep: break
         for j in range(len(cplst)):
             temp[j] = pcs[j][count*numlst[j]:(count+1)*numlst[j]]
-        x1 = temp[0]
-        x2 = temp[1]
-        x3 = temp[3]
-        for i in range(len(x1)):
-            if x1[i][0] == 0:
-                continue
-            for j in range(len(x2)):
-                if x2[j][0] == 0: continue
-                index = abs(x1[i][1]-x2[j][1])
-                if index >= NFFT: continue
-                if rxx[index][1] == 0:
-                    rxx[index][0] = x1[i][0]*(x2[j][0].conj())
-                    rxx[index][1] += 1
-                else:
-                    rxx[index][0] = (rxx[index][1]*rxx[index][0] + x1[i][0]*(x2[j][0].conj())) / (rxx[index][1]+1)
-                    rxx[index][1] += 1
-        #rxx = (count*prevrxx+rxx)/(count+1)
+        for k in range(len(temp)-1):
+            for g in range(k+1, len(temp)):
+                x1 = temp[k]
+                x2 = temp[g]
+                for i in range(len(x1)):
+                    if x1[i][0] == 0: continue
+                    for j in range(len(x2)):
+                        if x2[j][0] == 0: continue
+                        index = i-j+delay
+                        if index >= length or index < 0: continue
+                        if rxx[index][1] == 0:
+                            rxx[index][0] = x1[i][0]*(x2[j][0]**2)
+                            rxx[index][1] += 1
+                        else:
+                            rxx[index][0] = (rxx[index][1]*rxx[index][0] + x1[i][0]*(x2[j][0]**2)) / (rxx[index][1]+1)
+                            rxx[index][1] += 1
+        result[count, :] = rxx[:,0]
         count += 1
-        if norm((prevrxx-rxx)[:,0]) <= threshold: print count; break
-        #if count == 100: break
-        #print count, rxx[:10]
-        #print "\n", norm((prevrxx-rxx)[:,0])
-
-def dft (r_xx, Fs, NFFT, hamming, overlap=True, sides='default'):
-    if overlap:
-        step = NFFT // 2
-    else:
-        step = NFFT
-    ind = np.arange(0, len(r_xx)-NFFT+ 1, step)
-    n = len(ind)
-    pad_to = NFFT
-    if (sides == 'default' and np.iscomplexobj(r_xx)) or sides == 'twosided':
-        numFreqs = pad_to
-        scaling_factor = 1.
-    elif sides in ('default', 'onesided'):
-        numFreqs = pad_to//2 + 1
-        scaling_factor = 2.
-    else:
-        raise ValueError("sides must be one of: 'default', 'onesided', or 'twosided'")
-    
-    psd = np.zeros((numFreqs, n), np.complex_)
-    
-    for i in range(n):
-        temp = r_xx[ind[i]:(ind[i]+NFFT),0]*hamming
-        psd[:,i] = np.fft.fft(temp, n=pad_to)[:numFreqs]
-        #psd[:,i] = np.conjugate(fx[:numFreqs])*fx[:numFreqs]
-    
-    # Also include scaling factors for one-sided densities and dividing by the
-    # sampling frequency, if desired. Scale everything, except the DC component
-    # and the NFFT/2 component:
-    psd[1:-1] *= scaling_factor
-
-    # MATLAB divides by the sampling frequency so that density function
-    # has units of dB/Hz and can be integrated by the plotted frequency
-    # values. Perform the same scaling here.
-    psd /= Fs
-    
-    t = 1./Fs * (ind + NFFT/2.)
-    freqs = float(Fs) / pad_to * np.arange(numFreqs)
-
-    if (np.iscomplexobj(r_xx) and sides == 'default') or sides == 'twosided':
-        # center the frequency range at zero
-        freqs = np.concatenate((freqs[numFreqs//2:] - Fs, freqs[:numFreqs//2]))
-        psd = np.concatenate((psd[numFreqs//2:, :], psd[:numFreqs//2, :]), 0)
-
-    return psd, freqs, t
-
-def visualize_rxx (r_xx, Fs, NFFT):
-    step = NFFT
-    ind = np.arange(0, len(r_xx)-NFFT+ 1, step)
-    n = len(ind)
-    pad_to = NFFT
-    numFreqs = NFFT//2+1
-    psd = np.zeros((numFreqs, n), np.complex_)
-    t = 1./Fs * (ind + NFFT/2.)
-    freqs = float(Fs) / pad_to * np.arange(numFreqs)
-    for i in range(n):
-        psd[:,i] = r_xx[ind[i]:(ind[i]+NFFT),0][:numFreqs]
-    return psd, freqs, t
+    #np.save("result/exp_deviate_estc2_full_%d.npy"%(round), np.array(estc2full))
+    return result
 
 def test_coprime (input):
     if len(input)<=1: return False
@@ -179,7 +118,7 @@ def sampling (signal, NFFT, clist):
         print "For this slot, the length of sampled sequence is ", len(sampled[i])
     return sampled
 
-def main (NFFT, coprime_list, signalfile='', pcsfile=''):
+def main (signal, delay, round,  coprime_list):
     """
     Main loop for sampling and processing.
     The signalfile and pcsfile cannot be blank for the same time.
@@ -190,26 +129,19 @@ def main (NFFT, coprime_list, signalfile='', pcsfile=''):
                2) EITHER signalfile and pcsfile should be assigned.
     """
     # preprocessing
+    NFFT = 512
     assert test_coprime(coprime_list), "The input coprime list is illegal."
     coprime_list.sort()
-    # Load existing PCS datafile from pcsfiles
-    if signalfile == '':
-        pcs = {}
-        counter = 0
-        for filename in pcsfile:
-            pcs[counter] = np.load(filename)
-            print "For this slot, the length of sampled sequence is ", len(pcs[counter])
-            counter += 1
-        #TODO: sanity check for coprime pairs and the loaded PCS
-    # without downsampling, only perform coprime sampling and dumping datafile
-    else:
-        signal = np.load(signalfile)
-        pcs = sampling(signal, NFFT, coprime_list)
-        for i in range(len(pcs)):
-            np.save("pcs_data_%d.npy"%(coprime_list[i]), pcs[i])
-    
-    # loading complete
-    estc2(pcs, coprime_list, NFFT)
+    pcs = sampling(signal, NFFT, coprime_list)
+    c2 = estc2(signal, pcs, coprime_list, delay, NFFT)
+    c3 = estc3(signal, pcs, coprime_list, delay, NFFT)
+    delta = c2[:,-1]*c3[:,0]/c3[:,-1]
+    b2 = c3[:,-1]/c3[:,0]
+    b1 = c2[:,-2]/(delta*(1+delta)*b2)
+    print b1[-1], b2[-1]
+    print "complete round ", round
+    np.save("result/exp_deviate_b1_cp_%d.npy"%(round), b1)
+    np.save("result/exp_deviate_b2_cp_%d.npy"%(round), b2)
 
 
 
@@ -243,9 +175,6 @@ def full_estc2(signal, delay):
 def full_estc3(signal, delay):
     length = delay*2+1
     rxx = np.zeros((length, 2))
-    # For current setting of simulation the 512-FFT window will move 1386 times
-#    maxstep = len(signal)/NFFT
-    # For the sake of saving time of computation, hard coded as 100
     maxstep = len(signal)/length
     result = np.zeros((maxstep, length))
 
@@ -273,7 +202,7 @@ def full_estc3(signal, delay):
 
 def benchmark(output, delay, round):
     # only consider 2 delays
-    c2 = full_estc2(output, delay,)
+    c2 = full_estc2(output, delay)
     c3 = full_estc3(output, delay)
     delta = c2[:,-1]*c3[:,0]/c3[:,-1]
     b2 = c3[:,-1]/c3[:,0]
@@ -288,16 +217,17 @@ if __name__ == "__main__":
     
     # regular experiment processing PCS
 #    filelist = ["data/pcs_data_3.npy", "data/pcs_data_4.npy", "data/pcs_data_5.npy", "data/pcs_data_7.npy"]
-#    main(512, [3,4,5,7], pcsfile = filelist)
+    main(np.load("data/exp_deviate_one.npy"), 2, 0, [3,4,5,7])
 
     # testing the benchmark
-    nmc = 50
-    for j in range(nmc):
-        signal = np.load("data/exp_deviate_one_%d.npz.npy"%(j))
-        # For 3,4,5,7 (420), using 512*100=51200 points (100 frames)
-        y = np.zeros(51200)
-        b1 = -2.333
-        b2 = 0.667
-        for i in range(len(y)):
-            y[i] = signal[i]+b1*signal[i+1]+b2*signal[i+2]
-        benchmark(y, 2, j)
+#    nmc = 50
+#    for j in range(nmc):
+#        signal = np.load("data/exp_deviate_one_%d.npz.npy"%(j))
+#        # For 3,4,5,7 (420), using 512*100=51200 points (100 frames)
+#        y = np.zeros(512000)
+#        b1 = -2.333
+#        b2 = 0.667
+#        for i in range(len(y)):
+#            y[i] = signal[i]+b1*signal[i+1]+b2*signal[i+2]
+##        benchmark(y, 2, j)
+#        main(y, 2, j, [3 ,4,5,7])
