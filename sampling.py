@@ -33,7 +33,7 @@ def estc2 (signal, pcs, cplst, delay, NFFT):
                     if x1[i][0] == 0: continue
                     for j in range(len(x2)):
                         if x2[j][0] == 0: continue
-                        index = i-j+delay
+                        index = x2[j][1]-x1[i][1]+delay
                         if index >= length or index < 0: continue
                         if rxx[index][1] == 0:
                             rxx[index][0] = x1[i][0]*x2[j][0]
@@ -73,7 +73,7 @@ def estc3 (signal, pcs, cplst, delay, NFFT):
                     if x1[i][0] == 0: continue
                     for j in range(len(x2)):
                         if x2[j][0] == 0: continue
-                        index = i-j+delay
+                        index = x2[j][1]-x1[i][1]+delay
                         if index >= length or index < 0: continue
                         if rxx[index][1] == 0:
                             rxx[index][0] = x1[i][0]*(x2[j][0]**2)
@@ -82,7 +82,9 @@ def estc3 (signal, pcs, cplst, delay, NFFT):
                             rxx[index][0] = (rxx[index][1]*rxx[index][0] + x1[i][0]*(x2[j][0]**2)) / (rxx[index][1]+1)
                             rxx[index][1] += 1
         result[count, :] = rxx[:,0]
+        print result[count]
         count += 1
+        if count == 100: break
     #np.save("result/exp_deviate_estc2_full_%d.npy"%(round), np.array(estc2full))
     return result
 
@@ -133,15 +135,14 @@ def main (signal, delay, round,  coprime_list):
     assert test_coprime(coprime_list), "The input coprime list is illegal."
     coprime_list.sort()
     pcs = sampling(signal, NFFT, coprime_list)
-    c2 = estc2(signal, pcs, coprime_list, delay, NFFT)
+#    c2 = estc2(signal, pcs, coprime_list, delay, NFFT)
     c3 = estc3(signal, pcs, coprime_list, delay, NFFT)
-    delta = c2[:,-1]*c3[:,0]/c3[:,-1]
-    b2 = c3[:,-1]/c3[:,0]
-    b1 = c2[:,-2]/(delta*(1+delta)*b2)
-    print b1[-1], b2[-1]
-    print "complete round ", round
-    np.save("result/exp_deviate_b1_cp_%d.npy"%(round), b1)
-    np.save("result/exp_deviate_b2_cp_%d.npy"%(round), b2)
+#    delta = c2[:,-1]*c3[:,0]/c3[:,-1]
+#    b2 = c3[:,-1]/c3[:,0]
+#    b1 = c2[:,-2]/(delta*(1+delta)*b2)
+#    print "complete round ", round
+#    np.save("result/exp_deviate_b1_cp_%d.npy"%(round), b1)
+#    np.save("result/exp_deviate_b2_cp_%d.npy"%(round), b2)
 
 
 
@@ -186,7 +187,7 @@ def full_estc3(signal, delay):
             if x[i] == 0: continue
             for j in range(len(x)):
                 if x[j] == 0: continue
-                index = i-j+delay
+                index = j-i+delay
                 if index >= length or index < 0: continue
                 if rxx[index][1] == 0:
                     rxx[index][0] = x[i]*(x[j]**2)
