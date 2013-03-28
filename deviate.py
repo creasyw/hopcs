@@ -25,9 +25,14 @@ def double_exponential_deviate(beta):
 def generater_expo(beta, size):
     return exponential(beta, size)-beta
 
-def save_signal(beta):
+def save_signal(beta, nmc):
     # generate enough length of random data with given distribution
     length = 7*8*9*11*128
-    signal = generater_expo(beta,length)
-    np.save("exp_deviate_%d.npz", signal)
+    for i in range(nmc):
+        signal = generater_expo(beta,length)
+        np.save("data/exp_deviate_one_%d.npz"%(i), signal)
+        print "Save data for the %d round of monte carlo."%(i)
+
+if __name__=="__main__":
+    save_signal(1, 50)
 

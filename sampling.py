@@ -15,13 +15,13 @@ def estc2 (pcs, cplst, NFFT):
     temp = {}
     threshold = 0.1
     numlst = [int(ceil(NFFT/k)) for k in cplst]
-    prevrxx = rxx = np.zeros((NFFT, 2))
+    rxx = np.zeros((NFFT, 2))
     # all four elements in cplist should have the same # of splits
     # concerning len(pcs[i]/numlst[i]
     maxstep = len(pcs[0])/numlst[0]
     count = 0
     while True:
-        prevrxx = rxx
+        prevrxx = np.array(rxx)
         for j in range(len(cplst)):
             temp[j] = pcs[j][count*numlst[j]:(count+1)*numlst[j]]
         x1 = temp[0]
@@ -39,10 +39,54 @@ def estc2 (pcs, cplst, NFFT):
                 else:
                     rxx[index][0] = (rxx[index][1]*rxx[index][0] + x1[i][0]*(x2[j][0].conj())) / (rxx[index][1]+1)
                     rxx[index][1] += 1
-        rxx = (count*prevrxx+rxx)/(count+1)
+        #rxx = (count*prevrxx+rxx)/(count+1)
         count += 1
-        if norm((prevrxx-rxx)[:,0]) > threshold: break
-        print count, rxx[:10]
+        if norm((prevrxx-rxx)[:,0]) <= threshold: print count; break
+        #if count == 100: break
+        #print count, rxx[:10]
+        #print "\n", norm((prevrxx-rxx)[:,0])
+
+def estc3 (pcs, cplst, NFFT):
+    """
+    Return estimated 2nd order statistics (autocorrelation coefficients).
+    Input:  pcs: the loaded PCS (in a dictionary).
+            cplst: the list of pairwise coprime factors.
+            Note that the elements index in cplst should be corresponding to the key in the pcs.
+    """
+    temp = {}
+    threshold = 0.1
+    numlst = [int(ceil(NFFT/k)) for k in cplst]
+    rxx = np.zeros((NFFT, 2))
+    # all four elements in cplist should have the same # of splits
+    # concerning len(pcs[i]/numlst[i]
+    maxstep = len(pcs[0])/numlst[0]
+    count = 0
+    while True:
+        prevrxx = np.array(rxx)
+        for j in range(len(cplst)):
+            temp[j] = pcs[j][count*numlst[j]:(count+1)*numlst[j]]
+        x1 = temp[0]
+        x2 = temp[1]
+        x3 = temp[3]
+        for i in range(len(x1)):
+            if x1[i][0] == 0:
+                continue
+            for j in range(len(x2)):
+                if x2[j][0] == 0: continue
+                index = abs(x1[i][1]-x2[j][1])
+                if index >= NFFT: continue
+                if rxx[index][1] == 0:
+                    rxx[index][0] = x1[i][0]*(x2[j][0].conj())
+                    rxx[index][1] += 1
+                else:
+                    rxx[index][0] = (rxx[index][1]*rxx[index][0] + x1[i][0]*(x2[j][0].conj())) / (rxx[index][1]+1)
+                    rxx[index][1] += 1
+        #rxx = (count*prevrxx+rxx)/(count+1)
+        count += 1
+        if norm((prevrxx-rxx)[:,0]) <= threshold: print count; break
+        #if count == 100: break
+        #print count, rxx[:10]
+        #print "\n", norm((prevrxx-rxx)[:,0])
 
 def dft (r_xx, Fs, NFFT, hamming, overlap=True, sides='default'):
     if overlap:
