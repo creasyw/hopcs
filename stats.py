@@ -47,6 +47,8 @@ def plot_b1():
     plt.plot(bc1_av)
     plt.title("Averaging Monte Carlo output")
     
+    print bf1_av[-1], bc1_av[-1]
+
     plt.savefig("b1.pdf")
     plt.show()
 
@@ -92,8 +94,11 @@ def plot_b2():
     plt.plot(bc2_av)
     plt.title("Averaging Monte Carlo output")
     
+    print bf2_av[-1], bc2_av[-1]
+
     plt.savefig("b2.pdf")
     plt.show()
 
 if __name__=="__main__":
+    plot_b1()
     plot_b2()
