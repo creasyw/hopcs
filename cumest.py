@@ -28,7 +28,6 @@ def cum2est (signal, maxlag, nsamp, overlap, flag):
         for k in range(maxlag+1):
             y_cum[k] = y_cum[k] + reduce(lambda m,n:m+n, x[:(nsamp-k)]*x[k:nsamp], 0)
         ind += nadvance
-    print y_cum
     if flag == "biased":
         y_cum = y_cum / (nsamp*nrecord)
     elif flag == "unbiased":
@@ -39,10 +38,15 @@ def cum2est (signal, maxlag, nsamp, overlap, flag):
         y_cum = np.hstack((np.conjugate(y_cum[maxlag+1:0:-1]), y_cum))
     return y_cum
 
-
-if __name__=="__main__":
+def test ():
     # for tesating purpose
+    # The right results are:
+    #           "biased": [-0.12250513  0.35963613  1.00586945  0.35963613 -0.12250513]
+    #           "unbiaed": [-0.12444965  0.36246791  1.00586945  0.36246791 -0.12444965]
     import scipy.io as sio
     y = sio.loadmat("matfile/demo/ma1.mat")['y']
     print cum2est(y, 2, 128, 0, 'unbiased')
+
+if __name__=="__main__":
+
 
