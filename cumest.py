@@ -86,6 +86,85 @@ def cum3est (signal, maxlag, nsamp, overlap, flag, k1):
 
     return y_cum*scale/nrecord
 
+def cum4est (signal, maxlag, nsamp, overlap, flag, k1, k2):
+    """
+    CUM4EST Fourth-order cumulants.
+           Computes sample estimates of fourth-order cumulants
+           via the overlapped segment method.
+    
+           y_cum = cum4est (y, maxlag, samp_seg, overlap, flag, k1, k2)
+           y: input data vector (column)
+           maxlag: maximum lag
+           samp_seg: samples per segment
+           overlap: percentage overlap of segments
+          flag : 'biased', biased estimates are computed
+               : 'unbiased', unbiased estimates are computed.
+          k1,k2 : the fixed lags in C3(m,k1) or C4(m,k1,k2); see below
+          y_cum : estimated fourth-order cumulant slice
+                 C4(m,k1,k2)  -maxlag <= m <= maxlag
+    """
+    minlag = -maxlag
+    overlap = overlap/100*nsamp
+    nadvance = nsamp - overlap
+    nrecord = (len(signal)-overlap)/(nsamp-overlap)
+
+    nlags = 2 * maxlag +1
+    tmp = np.zeros(nlags, dtype=float)
+    if flat == "biased":
+        scale = np.ones(nlags, dtype=float)/nsamp
+    elif flat == "unbiased":
+        ind = np.array(range(-maxlag:maxlag+1))
+        kmin = min(0, min(k1, k2))
+        kmax = max(0, max(k1, k2))
+        scale = nsamp - np.array([max(k, kmax) for k in ind]) + np.array([min(k, kmin) for k in ind])
+        scale = np.ones(len(scale), dtype=float)/scale
+    else:
+        raise Exception("The flag should be either 'biased' or 'unbiased'!!")
+
+    mlag = maxlag + max(abs(np.array([k1, k2])))
+    mlag = max (mlag, abs(k1-k2))
+    nlag = maxlag
+    m2k2 = np.zeros(2*maxlag+1, dtype=float)
+
+    if any(singal.imag) != 0:
+        complex_flag = 1
+    else:
+        complex_flag = 0
+
+    y_cum = np.zeros(2*maxlag+1, dtype=float)
+    R_yy = np.zeros(2*mlag+1, 1)
+
+    ind = 0
+    for i in range(nrecord):
+        tmp = y_cum * 0
+        x = signal[ind:(ind+nsamp)]
+        x = x-float(sum(x))/len(x)
+        cx = np.conjugate(x)
+        z = x*0
+
+        if k1 >= 0:
+            z[:nsamp-k1] = x[:nsamp-k1]*cx[k1:nsamp]
+        else:
+            z[-k1:nsamp] = x[-k1:nsamp]*cx[:nsamp+k1]
+        if k2 >= 0:
+            z[:nsamp-k2] = z[:nsamp-k2] * x[k2:nsamp]
+            z[nsamp-k2:nsamp] = np.zeros(k2)
+        else:
+            z[-k2:nsamp] = z[-k2:nsamp] * x[:nsamp+k2]
+            z[:-k2] = np.zeros[-k2]
+        
+        tmp[maxlag] = tmp[maxlag] + reduce(lambda m,n:m+n, z*x, 0)
+        for k in range(1, maxlag+1):
+            tmp[maxlag-k] = tmp[maxlag-k] + reduce(lambda m,n:m+n, z[k:nsamp]*x[:nsamp-k], 0)
+            tmp[maxlag+k] = tmp[maxlag+k] + reduce(lambda m,n:m+n, z[:nsamp-k]*x[k:nsamp], 0)
+        
+        y_cum = y_cum + tmp*scale
+        R_yy = cum2est(x,mlag,nsamp,overlap,flag)
+        #if complex_flag:
+            
+
+
+
 def test ():
     # for tesating purpose
     # The right results are:
@@ -93,7 +172,7 @@ def test ():
     #           "unbiaed": [-0.12444965  0.36246791  1.00586945  0.36246791 -0.12444965]
     import scipy.io as sio
     y = sio.loadmat("matfile/demo/ma1.mat")['y']
-    #print cum2est(y, 2, 128, 0, 'unbiased')
+    print cum2est(y, 2, 128, 0, 'unbiased')
 
     # For the 3rd cumulant:
     #           "biased": [-0.18203039  0.07751503  0.67113035  0.729953    0.07751503]
