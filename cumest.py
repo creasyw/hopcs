@@ -1,5 +1,40 @@
 import numpy as np
 
+def cum2x (x,y, maxlag, nsamp, overlap, flag):
+    assert len(x) == len(y), "The two signal should be same length!"
+    assert maxlag >= 0, " 'maxlag' must be non-negative!"
+    if nsamp > len(x) or nsamp <= 0:
+        nsamp = len(x)
+    overlap = overlap/100*nsamp
+    nadvance = nsamp - overlap
+    nrecs  = (len(x)-overlap)/nadvance
+    nlags = 2*maxlag+1
+    y_cum = np.zeros(nlags, dtype=float)
+
+    if flag == "biased":
+        scale = np.ones(nlags, dtype=float)/nsamp
+    elif flag == "unbiased":
+        scale = np.array(range(nsamp-maxlag,nsamp+1)+range(nsamp-1,nsamp-maxlag-1,-1))
+        scale = np.ones(2*maxlag+1, dtype=float)/scale
+    else:
+        raise Exception("The flag should be either 'biased' or 'unbiased'!!")
+
+    ind = 0
+    for k in range(nrecs):
+        xs = x[ind:(ind+nsamp)]
+        xs = xs - float(sum(xs))/len(xs)
+        ys = y[ind:(ind+nsamp)]
+        ys = ys - float(sum(ys))/len(ys)
+        y_cum[maxlag] += reduce(lambda m,n:m+n,xs*ys, 0)
+        for m in range(1,maxlag+1):
+            y_cum[maxlag-m] = y_cum[maxlag-m]+reduce(lambda i,j:i+j,xs[m:nsamp]*ys[:nsamp-m])
+            y_cum[maxlag+m] = y_cum[maxlag+m]+reduce(lambda i,j:i+j,xs[:nsamp-m]*ys[m:nsamp])
+        ind += nadvance
+    return y_cum*scale/nrecs
+
+
+
+
 def cum2est (signal, maxlag, nsamp, overlap, flag):
     """
     CUM2EST Covariance function.
@@ -62,7 +97,7 @@ def cum3est (signal, maxlag, nsamp, overlap, flag, k1):
         scale = np.ones(nlags, dtype=float)/nsamp
     elif flag == "unbiased":
         lsamp = nsamp - abs(k1)
-        scale = range(lsamp-maxlag,lsamp+1) + range(lsamp-1, lsamp-maxlag-1, -1)
+        scale = np.array(range(lsamp-maxlag,lsamp+1) + range(lsamp-1, lsamp-maxlag-1, -1))
         scale = np.ones(len(scale), dtype=float)/scale
     else:
         raise Exception("The flag should be either 'biased' or 'unbiased'!!")
@@ -113,7 +148,7 @@ def cum4est (signal, maxlag, nsamp, overlap, flag, k1, k2):
     if flat == "biased":
         scale = np.ones(nlags, dtype=float)/nsamp
     elif flat == "unbiased":
-        ind = np.array(range(-maxlag:maxlag+1))
+        ind = np.array(range(-maxlag,maxlag+1))
         kmin = min(0, min(k1, k2))
         kmax = max(0, max(k1, k2))
         scale = nsamp - np.array([max(k, kmax) for k in ind]) + np.array([min(k, kmin) for k in ind])
@@ -172,12 +207,15 @@ def test ():
     #           "unbiaed": [-0.12444965  0.36246791  1.00586945  0.36246791 -0.12444965]
     import scipy.io as sio
     y = sio.loadmat("matfile/demo/ma1.mat")['y']
-    print cum2est(y, 2, 128, 0, 'unbiased')
+    #print cum2est(y, 2, 128, 0, 'unbiased')
 
     # For the 3rd cumulant:
     #           "biased": [-0.18203039  0.07751503  0.67113035  0.729953    0.07751503]
     #           "unbiased": [-0.18639911  0.07874543  0.67641484  0.74153955  0.07937539]
-    print cum3est(y, 2, 128, 0, 'unbiased', 1)
+    #print cum3est(y, 2, 128, 0, 'unbiased', 1)
+    
+    # For testing 2nd order covariance cummulant
+    print cum2x(y, y, 3, 100, 0, "biased")
 
 if __name__=="__main__":
     test()
