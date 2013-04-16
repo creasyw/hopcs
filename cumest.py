@@ -145,9 +145,9 @@ def cum4est (signal, maxlag, nsamp, overlap, flag, k1, k2):
 
     nlags = 2 * maxlag +1
     tmp = np.zeros(nlags, dtype=float)
-    if flat == "biased":
+    if flag == "biased":
         scale = np.ones(nlags, dtype=float)/nsamp
-    elif flat == "unbiased":
+    elif flag == "unbiased":
         ind = np.array(range(-maxlag,maxlag+1))
         kmin = min(0, min(k1, k2))
         kmax = max(0, max(k1, k2))
@@ -161,13 +161,13 @@ def cum4est (signal, maxlag, nsamp, overlap, flag, k1, k2):
     nlag = maxlag
     m2k2 = np.zeros(2*maxlag+1, dtype=float)
 
-    if any(singal.imag) != 0:
+    if any(signal.imag) != 0:
         complex_flag = 1
     else:
         complex_flag = 0
 
     y_cum = np.zeros(2*maxlag+1, dtype=float)
-    R_yy = np.zeros(2*mlag+1, 1)
+    R_yy = np.zeros(2*mlag+1, dtype=float)
 
     ind = 0
     for i in range(nrecord):
@@ -195,27 +195,40 @@ def cum4est (signal, maxlag, nsamp, overlap, flag, k1, k2):
         
         y_cum = y_cum + tmp*scale
         R_yy = cum2est(x,mlag,nsamp,overlap,flag)
-        #if complex_flag:
-            
+        if complex_flag:
+            M_yy = cum2x(np.conjugate(x), x, mlag, nsamp, overlap, flag)
+        else:
+            M_yy = R_yy
 
+        y_cum = y_cum - R_yy[mlag+k1]*R_yy[mlag-k2-nlag:mlag-k2+nlag+1] \
+                - R_yy[k1-k2+mlag]*R_yy[mlag-nlag:mlag+nlag+1] \
+                - M_yy[mlag+k2]*M_yy[mlag-k1-nlag:mlag-k1+nlag+1]
+        ind += nadvance
 
+    return y_cum/nrecord
 
 def test ():
+    import scipy.io as sio
+    y = sio.loadmat("matfile/demo/ma1.mat")['y']
     # for tesating purpose
     # The right results are:
     #           "biased": [-0.12250513  0.35963613  1.00586945  0.35963613 -0.12250513]
     #           "unbiaed": [-0.12444965  0.36246791  1.00586945  0.36246791 -0.12444965]
-    import scipy.io as sio
-    y = sio.loadmat("matfile/demo/ma1.mat")['y']
-    #print cum2est(y, 2, 128, 0, 'unbiased')
+    print cum2est(y, 2, 128, 0, 'unbiased')
 
     # For the 3rd cumulant:
     #           "biased": [-0.18203039  0.07751503  0.67113035  0.729953    0.07751503]
     #           "unbiased": [-0.18639911  0.07874543  0.67641484  0.74153955  0.07937539]
-    #print cum3est(y, 2, 128, 0, 'unbiased', 1)
+    print cum3est(y, 2, 128, 0, 'unbiased', 1)
     
     # For testing 2nd order covariance cummulant
+    # [-0.25719315 -0.12011232  0.35908314  1.01377882  0.35908314 -0.12011232 -0.25719315]
     print cum2x(y, y, 3, 100, 0, "biased")
+
+    # For testing the 4th-order cumulant
+    # "biased": [-0.03642083  0.4755026   0.6352588   1.38975232  0.83791117  0.41641134 -0.97386322]
+    # "unbiased": [-0.04011388  0.48736793  0.64948927  1.40734633  0.8445089   0.42303979 -0.99724968]
+    print cum4est(y, 3, 128, 0, 'unbiased', 1, 1)
 
 if __name__=="__main__":
     test()
