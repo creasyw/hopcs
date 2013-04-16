@@ -230,6 +230,34 @@ def test ():
     # "unbiased": [-0.04011388  0.48736793  0.64948927  1.40734633  0.8445089   0.42303979 -0.99724968]
     print cum4est(y, 3, 128, 0, 'unbiased', 1, 1)
 
+
+def cumest (y,norder=2,maxlag=0,nsamp=0,overlap=0,flag='biased',k1=0,k2=0):
+    """
+    CUMEST Second-, third- or fourth-order cumulants.
+         y - time-series  - should be a vector
+         norder - cumulant order: 2, 3 or 4 [default = 2]
+         maxlag - maximum cumulant lag to compute [default = 0]
+         samp_seg - samples per segment  [default = data_length]
+         overlap - percentage overlap of segments [default = 0]
+                   overlap is clipped to the allowed range of [0,99].
+         flag  - 'biased' or 'unbiased'  [default = 'biased']
+         k1,k2  - specify the slice of 3rd or 4th order cumulants
+         y_cum  - C2(m) or C3(m,k1) or C4(m,k1,k2),  -maxlag <= m <= maxlag
+                  depending upon the cumulant order selected
+    """
+    assert maxlag>0, "maxlag must be non-negative!"
+    assert nsamp>=0 and nsamp<len(y), "The number of samples is illigal!"
+    if nsamp == 0: nsamp = len(y)
+
+    if norder == 2:
+        return cum2est(y, maxlag, nsamp, overlap, flag)
+    elif norder == 3:
+        return cum3est (y, maxlag, nsamp, overlap, flag, k1)
+    elif norder == 4:
+        return cum4est (y, maxlag, nsamp, overlap, flag, k1, k2)
+    else:
+        raise Exception("Cumulant order must be 2, 3, or 4!")
+
 if __name__=="__main__":
     test()
 
