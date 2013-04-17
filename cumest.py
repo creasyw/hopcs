@@ -183,7 +183,10 @@ def cum4est (signal, maxlag, nsamp, overlap, flag, k1, k2):
             z[-k1:nsamp] = x[-k1:nsamp]*cx[:nsamp+k1]
         if k2 >= 0:
             z[:nsamp-k2] = z[:nsamp-k2] * x[k2:nsamp]
-            z[nsamp-k2:nsamp] = np.zeros((k2, 1))
+            if len(z.shape) == 1:
+                z[nsamp-k2:nsamp] = np.zeros(k2)
+            else:
+                z[nsamp-k2:nsamp] = np.zeros((k2, z.shape[1]))
         else:
             z[-k2:nsamp] = z[-k2:nsamp] * x[:nsamp+k2]
             z[:-k2] = np.zeros[-k2]
