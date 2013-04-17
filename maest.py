@@ -33,7 +33,9 @@ def maest(y,q, norder=3,samp_seg=1,overlap=0,flag='biased'):
     cumq = np.hstack((cumq[2*q:q-1:-1], np.zeros(q)))
     cmat4 = toeplitz(cumq, np.hstack((cumq[0],np.zeros(q))))
     c3   = cumd[:2*q+1]
-    amat0 = np.vstack((np.hstack((amat0, np.zeros((3*q+1,1)))), np.hstack((np.hstack((np.zeros((2*q+1,q+1)), cmat4[:,1:q+1])), np.reshape(-c3,(len(c3),1))))))
+    amat0 = np.vstack((np.hstack((amat0, np.zeros((3*q+1,1)))), \
+            np.hstack((np.hstack((np.zeros((2*q+1,q+1)), cmat4[:,1:q+1])), \
+            np.reshape(-c3,(len(c3),1))))))
     rvec0 = np.hstack((rvec0, -cmat4[:,0]))
 
     row_sel = range(q)+range(2*q+1,3*q+1)+range(3*q+1,4*q+1)+range(4*q+2,5*q+2)
