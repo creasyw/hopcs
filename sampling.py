@@ -227,6 +227,6 @@ if __name__ == "__main__":
         b1 = -2.333
         b2 = 0.667
         for i in range(len(y)):
-            y[i] = signal[i]+b1*signal[i+1]+b2*signal[i+2]
+            y[i] = signal[i+2]+b1*signal[i+1]+b2*signal[i]
 #        benchmark(y, 2, j)
         main(y, 2, j, [3,4,5,7])
