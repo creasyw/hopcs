@@ -1,5 +1,13 @@
 import numpy as np
 
+def sampling (signal, factor):
+    """
+    Return signals with sampling period given with "factor", and stuff zeros in the interval.
+    The format of return values is np.ndarray.
+    NOTE: it is different from the same function in "sampling.py".
+    """
+    return np.array([signal[k] if k%3==0 else 0 for k in range(len(signal))])
+
 def cum2x (x,y, maxlag, nsamp, overlap, flag):
     assert len(x) == len(y), "The two signal should be same length!"
     assert maxlag >= 0, " 'maxlag' must be non-negative!"
@@ -10,14 +18,7 @@ def cum2x (x,y, maxlag, nsamp, overlap, flag):
     nrecs  = (len(x)-overlap)/nadvance
     nlags = 2*maxlag+1
     y_cum = np.zeros(nlags, dtype=float)
-
-    if flag == "biased":
-        scale = np.ones(nlags, dtype=float)/nsamp
-    elif flag == "unbiased":
-        scale = np.array(range(nsamp-maxlag,nsamp+1)+range(nsamp-1,nsamp-maxlag-1,-1))
-        scale = np.ones(2*maxlag+1, dtype=float)/scale
-    else:
-        raise Exception("The flag should be either 'biased' or 'unbiased'!!")
+    count = np.zeros(nlags, dtype=float)
 
     ind = 0
     for k in range(nrecs):
@@ -25,12 +26,26 @@ def cum2x (x,y, maxlag, nsamp, overlap, flag):
         xs = xs - float(sum(xs))/len(xs)
         ys = y[ind:(ind+nsamp)]
         ys = ys - float(sum(ys))/len(ys)
-        y_cum[maxlag] += reduce(lambda m,n:m+n,xs*ys, 0)
+        temp = xs*ys
+        y_cum[maxlag] += reduce(lambda m,n:m+n,temp, 0)
+        count[maxlag] += len(filter(lambda i: i!=0, temp))
         for m in range(1,maxlag+1):
-            y_cum[maxlag-m] = y_cum[maxlag-m]+reduce(lambda i,j:i+j,xs[m:nsamp]*ys[:nsamp-m])
-            y_cum[maxlag+m] = y_cum[maxlag+m]+reduce(lambda i,j:i+j,xs[:nsamp-m]*ys[m:nsamp])
+            temp = xs[m:nsamp]*ys[:nsamp-m]
+            y_cum[maxlag-m] = y_cum[maxlag-m]+reduce(lambda i,j:i+j,temp, 0)
+            count[maxlag-m] += len(filter(lambda i: i!=0, temp))
+            temp = xs[:nsamp-m]*ys[m:nsamp]
+            y_cum[maxlag+m] = y_cum[maxlag+m]+reduce(lambda i,j:i+j,temp, 0)
+            count[maxlag+m] += len(filter(lambda i: i!=0, temp))
         ind += nadvance
-    return y_cum*scale/nrecs
+    
+    if flag == "biased":
+        scale = np.ones(nlags, dtype=float)/nsamp/nrecs
+    elif flag == "unbiased":
+        scale = 1./count
+    else:
+        raise Exception("The flag should be either 'biased' or 'unbiased'!!")
+
+    return y_cum*scale
 
 
 
@@ -38,6 +53,7 @@ def cum2x (x,y, maxlag, nsamp, overlap, flag):
 def cum2est (signal, maxlag, nsamp, overlap, flag):
     """
     CUM2EST Covariance function.
+    For the case of PCS, only the nonzero sampled points are taken into account.
          y: input data vector (column)
          maxlag: maximum lag to be computed
          samp_seg: samples per segment (<=0 means no segmentation)
@@ -52,6 +68,7 @@ def cum2est (signal, maxlag, nsamp, overlap, flag):
     nrecord = (len(signal)-overlap)/(nsamp-overlap)
 
     y_cum = np.zeros(maxlag+1, dtype=float)
+    count = np.zeros(maxlag+1, dtype=float)
     ind = 0
 
     for i in range(nrecord):
@@ -59,11 +76,12 @@ def cum2est (signal, maxlag, nsamp, overlap, flag):
         x = x-float(sum(x))/len(x)
         for k in range(maxlag+1):
             y_cum[k] = y_cum[k] + reduce(lambda m,n:m+n, x[:(nsamp-k)]*x[k:nsamp], 0)
+            count[k] += len(filter(lambda i: i!=0, x[k:nsamp]))
         ind += nadvance
     if flag == "biased":
         y_cum = y_cum / (nsamp*nrecord)
     elif flag == "unbiased":
-        y_cum = y_cum / (nrecord * (nsamp-np.array(range(maxlag+1))))
+        y_cum = y_cum / count
     else:
         raise Exception("The flag should be either 'biased' or 'unbiased'!!")
     if maxlag>0:
@@ -217,21 +235,22 @@ def test ():
     # The right results are:
     #           "biased": [-0.12250513  0.35963613  1.00586945  0.35963613 -0.12250513]
     #           "unbiaed": [-0.12444965  0.36246791  1.00586945  0.36246791 -0.12444965]
-    print cum2est(y, 2, 128, 0, 'unbiased')
+    #print cum2est(y, 2, 128, 0, 'unbiased')
 
     # For the 3rd cumulant:
     #           "biased": [-0.18203039  0.07751503  0.67113035  0.729953    0.07751503]
     #           "unbiased": [-0.18639911  0.07874543  0.67641484  0.74153955  0.07937539]
-    print cum3est(y, 2, 128, 0, 'unbiased', 1)
+    #print cum3est(y, 2, 128, 0, 'unbiased', 1)
     
     # For testing 2nd order covariance cummulant
-    # [-0.25719315 -0.12011232  0.35908314  1.01377882  0.35908314 -0.12011232 -0.25719315]
-    print cum2x(y, y, 3, 100, 0, "biased")
+    # biased:   [-0.25719315 -0.12011232  0.35908314  1.01377882  0.35908314 -0.12011232 -0.25719315]
+    # unbiased: [-0.26514758 -0.12256359  0.36271024  1.01377882  0.36271024 -0.12256359, -0.26514758]
+    print cum2x(sampling(y, 3), sampling(y, 4), 3, 100, 0, "unbiased")
 
     # For testing the 4th-order cumulant
     # "biased": [-0.03642083  0.4755026   0.6352588   1.38975232  0.83791117  0.41641134 -0.97386322]
     # "unbiased": [-0.04011388  0.48736793  0.64948927  1.40734633  0.8445089   0.42303979 -0.99724968]
-    print cum4est(y, 3, 128, 0, 'unbiased', 1, 1)
+    #print cum4est(y, 3, 128, 0, 'unbiased', 1, 1)
 
 
 def cumest (y,norder=2,maxlag=0,nsamp=0,overlap=0,flag='biased',k1=0,k2=0):
