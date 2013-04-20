@@ -76,7 +76,7 @@ y_cum = zeros(nlags,1);
 if (flag(1) == 'b' | flag(1) == 'B')
     scale = ones(nlags,1)/nsamp;
 else
-    lsamp = lx - abs(k1);
+    lsamp = nsamp - abs(k1);
     scale = [lsamp-maxlag:lsamp,lsamp-1:-1:lsamp-maxlag]';
     scale = ones(2*maxlag+1,1) ./ scale;
  end
