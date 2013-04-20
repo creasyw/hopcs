@@ -115,94 +115,6 @@ def cum3x (x, y, z, maxlag=0, nsamp=1, overlap=0, flag="unbiased", k1=0):
     return y_cum*scale
 
 
-def cum2est (signal, maxlag, nsamp, overlap, flag):
-    """
-    CUM2EST Covariance function.
-    For the case of PCS, only the nonzero sampled points are taken into account.
-         y: input data vector (column)
-         maxlag: maximum lag to be computed
-         samp_seg: samples per segment (<=0 means no segmentation)
-         overlap: percentage overlap of segments
-         flag: 'biased', biased estimates are computed
-               'unbiased', unbiased estimates are computed.
-         y_cum: estimated covariance,
-                C2(m)  -maxlag <= m <= maxlag
-    """
-    overlap = overlap/100*nsamp
-    nadvance = nsamp - overlap
-    nrecord = (len(signal)-overlap)/(nsamp-overlap)
-
-    y_cum = np.zeros(maxlag+1, dtype=float)
-    count = np.zeros(maxlag+1, dtype=float)
-    ind = 0
-
-    for i in range(nrecord):
-        x = signal[ind:(ind+nsamp)]
-        x = x-float(sum(x))/len(x)
-        for k in range(maxlag+1):
-            y_cum[k] = y_cum[k] + reduce(lambda m,n:m+n, x[:(nsamp-k)]*x[k:nsamp], 0)
-            count[k] += len(filter(lambda i: i!=0, x[k:nsamp]))
-        ind += nadvance
-    if flag == "biased":
-        y_cum = y_cum / (nsamp*nrecord)
-    elif flag == "unbiased":
-        y_cum = y_cum / count
-    else:
-        raise Exception("The flag should be either 'biased' or 'unbiased'!!")
-    if maxlag>0:
-        y_cum = np.hstack((np.conjugate(y_cum[maxlag+1:0:-1]), y_cum))
-    return y_cum
-
-
-def cum3est (signal, maxlag, nsamp, overlap, flag, k1):
-    """
-    CUM3EST Third-order cumulants.
-        y: input data vector (column)
-        maxlag: maximum lag to be computed
-        samp_seg: samples per segment
-        overlap: percentage overlap of segments
-        flag : 'biased', biased estimates are computed  [default]
-               'unbiased', unbiased estimates are computed.
-        k1: the fixed lag in c3(m,k1): see below
-        y_cum:  estimated third-order cumulant,
-                 C3(m,k1)  -maxlag <= m <= maxlag
-    """
-    minlag = -maxlag
-    overlap = overlap/100*nsamp
-    nadvance = nsamp - overlap
-    nrecord = (len(signal)-overlap)/(nsamp-overlap)
-
-    y_cum = np.zeros(maxlag*2+1, dtype=float)
-    ind = 0
-    nlags = 2*maxlag + 1
-
-    if flag == "biased":
-        scale = np.ones(nlags, dtype=float)/nsamp
-    elif flag == "unbiased":
-        lsamp = nsamp - abs(k1)
-        scale = np.array(range(lsamp-maxlag,lsamp+1) + range(lsamp-1, lsamp-maxlag-1, -1))
-        scale = np.ones(len(scale), dtype=float)/scale
-    else:
-        raise Exception("The flag should be either 'biased' or 'unbiased'!!")
-
-    for i in range(nrecord):
-        x = signal[ind:(ind+nsamp)]
-        x = x-float(sum(x))/len(x)
-        cx = np.conjugate(x)
-        z = x*0
-        if k1 >= 0:
-            z[:nsamp-k1] = x[:nsamp-k1]*cx[k1:nsamp]
-        else:
-            z[-k1:nsamp] = x[-k1:nsamp]*cx[:nsamp+k1]
-
-        y_cum[maxlag] = y_cum[maxlag] +  reduce(lambda m,n:m+n, z*x, 0)
-
-        for k in range(1, maxlag+1):
-            y_cum[maxlag-k] = y_cum[maxlag-k] + reduce(lambda m,n:m+n, z[k:nsamp]*x[:nsamp-k], 0)
-            y_cum[maxlag+k] = y_cum[maxlag+k] + reduce(lambda m,n:m+n, z[:nsamp-k]*x[k:nsamp], 0)
-        ind += nadvance
-    return y_cum*scale/nrecord
-
 def cum4est (signal, maxlag, nsamp, overlap, flag, k1, k2):
     """
     CUM4EST Fourth-order cumulants.
@@ -295,22 +207,12 @@ def cum4est (signal, maxlag, nsamp, overlap, flag, k1, k2):
 def test ():
     import scipy.io as sio
     y = sio.loadmat("matfile/demo/ma1.mat")['y']
-    y = np.load("data/exp_deviate_one.npy")
-    # for tesating purpose
-    # The right results are:
-    #           "biased": [-0.12250513  0.35963613  1.00586945  0.35963613 -0.12250513]
-    #           "unbiaed": [-0.12444965  0.36246791  1.00586945  0.36246791 -0.12444965]
-    #print cum2est(y, 2, 128, 0, 'unbiased')
+    #y = np.load("data/exp_deviate_one.npy")
     
     # For testing 2nd order covariance cummulant. original config--"cum2x(y, y, 3, 100, 0, "biased")"
     # biased:   [-0.25719315 -0.12011232  0.35908314  1.01377882  0.35908314 -0.12011232 -0.25719315]
     # unbiased: [-0.26514758 -0.12256359  0.36271024  1.01377882  0.36271024 -0.12256359, -0.26514758]
     #print cum2x(sampling(y, 3), sampling(y, 4), 3, 128, 0, "unbiased")
-
-    # For the 3rd cumulant:
-    #           "biased": [ 0.43001919  0.729953    0.75962972  0.67113035 -0.15817154]
-    #           "unbiased": [ 0.43684489  0.73570066  0.75962972  0.67641484 -0.1606822 ]
-    print cum3est(y, 2, 128, 0, 'unbiased', 0)
 
     # For the 3rd covariance cumulant: cum3x(y, y, y, 2, 128, 0, 'unbiased', 0)
     # biased: [ 0.43001919  0.729953    0.75962972  0.67113035 -0.15817154]
