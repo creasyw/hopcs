@@ -198,7 +198,7 @@ def cum4x (w, x, y, z, maxlag=0, nsamp=1, overlap=0, flag='unbiased', k1=0, k2=0
         if k1-k2 >= 0:
             R_zy += reduce(lambda m, n: m+n, zs[:nsamp-k1+k2]*ys[k1-k2:nsamp], 0)
         else:
-            R_zy += reduce(lambda m, n: m_n, zs[-k1+k2:nsamp]*ys[:nsamp-k2+k1])
+            R_zy += reduce(lambda m, n: m+n, zs[-k1+k2:nsamp]*ys[:nsamp-k2+k1])
         
         tmp[maxlag] = tmp[maxlag] + reduce(lambda m,n:m+n, ziv*xs, 0)
         for k in range(1, maxlag+1):
@@ -210,8 +210,8 @@ def cum4x (w, x, y, z, maxlag=0, nsamp=1, overlap=0, flag='unbiased', k1=0, k2=0
         R_zx = cum2x(zs, xs, maxlag+abs(k2), nsamp, overlap0, flag)
         M_yx = cum2x(cys, xs, maxlag+abs(k1), nsamp, overlap0, flag)
 
-        y_cum = y_cum - R_zy*R_wx*sc12 - R_wy*R_zx[-k2+abs(k2):2*maxlag-k2+abs(k2)+2] *sc1 \
-                - M_wz*M_yx[-k1+abs(k1):2*maxlag-k1+abs(k1)+2]*sc2
+        y_cum = y_cum - R_zy*R_wx*sc12 - R_wy*R_zx[-k2+abs(k2):2*maxlag-k2+abs(k2)+1] *sc1 \
+                - M_wz*M_yx[-k1+abs(k1):2*maxlag-k1+abs(k1)+1]*sc2
         ind += nadvance
 
     return y_cum/nrecs
