@@ -18,7 +18,6 @@ def cum2x (x,y, maxlag, nsamp, overlap, flag):
     nrecs  = (len(x)-overlap)/nadvance
     nlags = 2*maxlag+1
     y_cum = np.zeros(nlags, dtype=float)
-    count = np.zeros(nlags, dtype=float)
 
     ind = 0
     for k in range(nrecs):
@@ -28,21 +27,17 @@ def cum2x (x,y, maxlag, nsamp, overlap, flag):
         ys = ys - float(sum(ys))/len(ys)
         temp = xs*ys
         y_cum[maxlag] += reduce(lambda m,n:m+n,temp, 0)
-        count[maxlag] += len(filter(lambda i: i>=0.01, temp))
         for m in range(1,maxlag+1):
             temp = xs[m:nsamp]*ys[:nsamp-m]
             y_cum[maxlag-m] = y_cum[maxlag-m]+reduce(lambda i,j:i+j,temp, 0)
-            count[maxlag-m] += len(filter(lambda i: i>=0.005, temp))
             temp = xs[:nsamp-m]*ys[m:nsamp]
             y_cum[maxlag+m] = y_cum[maxlag+m]+reduce(lambda i,j:i+j,temp, 0)
-            count[maxlag+m] += len(filter(lambda i: i>=0.005, temp))
         ind += nadvance
     if flag == "biased":
         scale = np.ones(nlags, dtype=float)/nsamp/nrecs
     elif flag == "unbiased":
         scale = np.array(range(nsamp-maxlag,nsamp+1)+range(nsamp-1,nsamp-maxlag-1,-1))
         scale = np.ones(2*maxlag+1, dtype=float)/scale
-        #scale = 1./count
     else:
         raise Exception("The flag should be either 'biased' or 'unbiased'!!")
     return y_cum*scale
@@ -349,7 +344,8 @@ def test ():
     # For testing 2nd order covariance cummulant. original config--"cum2x(y, y, 3, 100, 0, "biased")"
     # biased:   [-0.25719315 -0.12011232  0.35908314  1.01377882  0.35908314 -0.12011232 -0.25719315]
     # unbiased: [-0.26514758 -0.12256359  0.36271024  1.01377882  0.36271024 -0.12256359, -0.26514758]
-    #print cum2x(sampling(y, 3), sampling(y, 4), 3, 128, 0, "unbiased")
+    print cum2x(y, y, 3, 128, 0, "unbiased")
+    print cum2x(sampling(y,2), sampling(y,3), 3, 128, 0, "unbiased")
 
     # For the 3rd covariance cumulant: cum3x(y, y, y, 2, 128, 0, 'unbiased', 0)
     # biased: [ 0.43001919  0.729953    0.75962972  0.67113035 -0.15817154]
@@ -360,7 +356,7 @@ def test ():
     # "biased": [-0.55006876  0.83791117  2.66759034  1.65635663 -0.32747939]
     # "unbiased": [-0.55880001  0.8445089   2.66759034  1.66939881 -0.33267748]
     print cum4est(y, 2, 128, 0, 'unbiased', 0, 0)
-    print cum4x(y, y, y, y, 2, 128, 0, 'unbiased', 0, 0)
+    print cum4x(sampling(y,2), sampling(y,3), sampling(y,5), sampling(y,7), 2, 128, 0, 'unbiased', 0, 0)
 
 
 def cumest (y,norder=2,maxlag=0,nsamp=0,overlap=0,flag='biased',k1=0,k2=0):
