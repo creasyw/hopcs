@@ -84,34 +84,34 @@ def cum3x (x, y, z, maxlag=0, nsamp=1, overlap=0, flag="unbiased", k1=0):
     ind = 0
     for k in range(nrecs):
         xs = x[ind:(ind+nsamp)]
-        xs = xs - float(sum(xs))/len(xs)
+        xs = np.array([j-float(sum(xs))/sum(1 for i in xs if i!=0) if j!=0 else 0 for j in xs])
         ys = y[ind:(ind+nsamp)]
-        ys = ys - float(sum(ys))/len(ys)
+        ys = np.array([j-float(sum(ys))/sum(1 for i in ys if i!=0) if j!=0 else 0 for j in ys])
         zs = z[ind:(ind+nsamp)]
-        zs = np.conjugate(zs - float(sum(zs))/len(zs))
+        zs = np.conjugate(np.array([j-float(sum(zs))/sum(1 for i in zs if i!=0) if j!=0 else 0 for j in zs]))
 
         u = xs[indx]*zs[indz]
 
         temp = u*ys
         y_cum[maxlag] += reduce(lambda m,n:m+n,temp, 0)
-        count[maxlag] += len(filter(lambda i: i>=0.00001, temp))
+        count[maxlag] += sum(1 for i in temp if i!=0)
         for m in range(1,maxlag+1):
             temp = u[m:nsamp]*ys[:nsamp-m]
             y_cum[maxlag-m] = y_cum[maxlag-m]+reduce(lambda i,j:i+j,temp, 0)
-            count[maxlag-m] += len(filter(lambda i: i>=0.0001, temp))
+            count[maxlag-m] += sum(1 for i in temp if i!=0)
             temp = u[:nsamp-m]*ys[m:nsamp]
             y_cum[maxlag+m] = y_cum[maxlag+m]+reduce(lambda i,j:i+j,temp, 0)
-            count[maxlag+m] += len(filter(lambda i: i>=0.0001, temp))
+            count[maxlag+m] += sum(1 for i in temp if i!=0)
         ind += nadvance
     if flag == "biased":
         scale = np.ones(nlags, dtype=float)/nsamp/nrecs
     elif flag == "unbiased":
         # For un-PCS sequences
-        lsamp = nsamp-abs(k1)
-        scale = np.array(range(lsamp-maxlag,lsamp+1)+range(lsamp-1,lsamp-maxlag-1,-1))
-        scale = np.ones(len(scale), dtype=float)/scale/nrecs
+#        lsamp = nsamp-abs(k1)
+#        scale = np.array(range(lsamp-maxlag,lsamp+1)+range(lsamp-1,lsamp-maxlag-1,-1))
+#        scale = np.ones(len(scale), dtype=float)/scale/nrecs
         # For PCS sequences
-        #scale = 1./count
+        scale = 1./count
     else:
         raise Exception("The flag should be either 'biased' or 'unbiased'!!")
     return y_cum*scale
@@ -407,8 +407,9 @@ def test ():
     # unbiased: [ 0.43684489  0.73570066  0.75962972  0.67641484 -0.1606822 ]
     #print cum3est(y, 2, 128, 0, 'unbiased', 0)
     print "\n\n"
-    #print cum3x(y, y, y, 2, 128, 0, 'unbiased', 0)
-    #print cum3x(sampling(y,3), sampling(y,4), sampling(y,5), 2, 128, 0, 'unbiased', 0)
+    print cum3est(y, 2, 128, 0, 'unbiased', 0)
+    print cum3x(y, y, y, 2, 128, 0, 'unbiased', 0)
+    print cum3x(sampling(y,3), sampling(y,4), sampling(y,5), 2, 128, 0, 'unbiased', 0)
 
     # For testing the 4th-order cumulant
     # "biased": [-0.55006876  0.83791117  2.66759034  1.65635663 -0.32747939]
