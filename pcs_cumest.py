@@ -359,7 +359,7 @@ def test ():
     print cum4x(sampling(y,2), sampling(y,3), sampling(y,5), sampling(y,7), 2, 128, 0, 'unbiased', 0, 0)
 
 
-def cumest (y, pcs, norder=2,maxlag=0,nsamp=0,overlap=0,flag='biased',k1=0,k2=0):
+def cumx (y, pcs, norder=2,maxlag=0,nsamp=0,overlap=0,flag='biased',k1=0,k2=0):
     """
     CUMEST Second-, third- or fourth-order cumulants.
          y - time-series  - should be a vector
