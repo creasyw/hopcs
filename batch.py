@@ -1,22 +1,23 @@
 import numpy as np
-from maest import maest
+from maest import maestx
 import sys
 
-signal = np.load("data/exp_deviate_one_0.npz.npy")
-y = np.zeros(len(signal)-2)
-b1 = -2.333
-b2 = 0.667
-for i in range(len(y)):
-    y[i] = signal[i+2]+b1*signal[i+1]+b2*signal[i]
-
-i = 128
 result3 = []
 result4 = []
-while i < len(y):
-    result3.append(maest(y, 2, 3, i))
-    result4.append(maest(y, 2, 4, i))
-    i *= 2
-    sys.stdout.write("Now the %s length is complete\r"% i)
+step = 512
+pcs = [2,3,5,7]
+
+for k in range(0,10):
+    signal = np.load("data/exp_deviate_one_%d.npz.npy"%(k))
+    y = np.zeros(len(signal)-2)
+    b1 = -2.333
+    b2 = 0.667
+    for i in range(len(y)):
+        y[i] = signal[i+2]+b1*signal[i+1]+b2*signal[i]
+    
+    result3.append(maestx(y, pcs, 2, 3, step))
+    result4.append(maestx(y, pcs, 2, 4, step))
+    sys.stdout.write("%sth data file is complete, 3rd-order=%s, 4th-order=%s\r"%(k,result3[-1],result4[-1]))
     sys.stdout.flush()
 
 f = open("test_result.txt", 'w')
