@@ -444,7 +444,7 @@ def test ():
     print cum4x(sampling(y,2), sampling(y,3), sampling(y,5), sampling(y,7), 2, 512, 0, 0, 0)
 
 
-def cumx (y, pcs, norder=2,maxlag=0,nsamp=0,overlap=0,flag='biased',k1=0,k2=0):
+def cumx (y, pcs, norder=2,maxlag=0,nsamp=0,overlap=0,k1=0,k2=0):
     """
     CUMEST Second-, third- or fourth-order cumulants.
          y - time-series  - should be a vector
@@ -464,15 +464,15 @@ def cumx (y, pcs, norder=2,maxlag=0,nsamp=0,overlap=0,flag='biased',k1=0,k2=0):
 
     if norder == 2:
         assert len(pcs)>=2, "There is not sufficient PCS coefficients!"
-        return cum2x (sampling(y,pcs[0]), sampling(y,pcs[1]), maxlag, nsamp, overlap, flag)
+        return cum2x (sampling(y,pcs[0]), sampling(y,pcs[1]), maxlag, nsamp, overlap)
     elif norder == 3:
         assert len(pcs)>=3, "There is not sufficient PCS coefficients!"
         return cum3x (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
-                maxlag, nsamp, overlap, flag, k1)
+                maxlag, nsamp, overlap, k1)
     elif norder == 4:
-        assert len(pcs)==4, "There is not sufficient PCS coefficients!"
+        assert len(pcs)>=4, "There is not sufficient PCS coefficients!"
         return cum4x (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
-                sampling(y,pcs[3]), maxlag, nsamp, overlap, flag, k1, k2)
+                sampling(y,pcs[3]), maxlag, nsamp, overlap, k1, k2)
     else:
         raise Exception("Cumulant order must be 2, 3, or 4!")
 
