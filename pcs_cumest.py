@@ -76,11 +76,11 @@ def cum3x (x, y, z, maxlag=0, nsamp=1, overlap=0, k1=0):
     count = np.zeros(nlags, dtype=float)
 
     if k1 >= 0:
-        indx = np.array(range(nsamp-k1))
-        indz = np.array(range(k1, nsamp))
+        indx = range(nsamp-k1)
+        indz = range(k1, nsamp)
     else:
-        indx = np.array(range(-k1, nsamp))
-        indz = np.array(range(nsamp+k1))
+        indx = range(-k1, nsamp)
+        indz = range(nsamp+k1)
     ind = 0
     for k in range(nrecs):
         xs = x[ind:(ind+nsamp)]
@@ -90,7 +90,8 @@ def cum3x (x, y, z, maxlag=0, nsamp=1, overlap=0, k1=0):
         zs = z[ind:(ind+nsamp)]
         zs = np.conjugate(np.array([j-float(sum(zs))/sum(1 for i in zs if i!=0) if j!=0 else 0 for j in zs]))
 
-        u = xs[indx]*zs[indz]
+        u = np.zeros(nsamp, dtype=float)
+        u[indx[0]:indx[-1]+1] = xs[indx]*zs[indz]
 
         temp = u*ys
         y_cum[maxlag] += reduce(lambda m,n:m+n,temp, 0)
@@ -414,6 +415,7 @@ def cum2est (signal, maxlag, nsamp, overlap, flag):
 def test ():
     import scipy.io as sio
     y = sio.loadmat("matfile/demo/ma1.mat")['y']
+    y = y.flatten()
     #y = np.load("data/exp_deviate_one.npy")
     
     # The 'biased'/'unbiased' flag is disabled for the application of PCS
@@ -430,9 +432,9 @@ def test ():
     # unbiased: [ 0.43684489  0.73570066  0.75962972  0.67641484 -0.1606822 ]
     #print cum3est(y, 2, 128, 0, 'unbiased', 0)
     print "\n\n"
-    print cum3est(y, 2, 128, 0, 'unbiased', 0)
-    print cum3x(y, y, y, 2, 128, 0, 0)
-    print cum3x(sampling(y,2), sampling(y,3), sampling(y,5), 2, 128, 0, 0)
+    print cum3est(y, 2, 128, 0, 'unbiased', 2)
+    print cum3x(y, y, y, 2, 128, 0, 2)
+    print cum3x(sampling(y,2), sampling(y,3), sampling(y,5), 2, 512, 0, 2)
 
     # For testing the 4th-order cumulant
     # "biased": [-0.55006876  0.83791117  2.66759034  1.65635663 -0.32747939]
