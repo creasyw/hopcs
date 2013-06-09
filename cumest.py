@@ -1,7 +1,7 @@
 import numpy as np
-from cumxst import cum2x
+from cum2x import cum2x
 
-def cum2est (signal, maxlag, nsamp, overlap, flag):
+def cum2est (signal, maxlag, nsamp, overlap=0, flag="unbiased"):
     """
     CUM2EST Covariance function.
          y: input data vector (column)
@@ -21,6 +21,7 @@ def cum2est (signal, maxlag, nsamp, overlap, flag):
     ind = 0
 
     for i in range(nrecord):
+        # cummulant = signal - expectation
         x = signal[ind:(ind+nsamp)]
         x = x-float(sum(x))/len(x)
         for k in range(maxlag+1):
@@ -37,7 +38,7 @@ def cum2est (signal, maxlag, nsamp, overlap, flag):
     return y_cum
 
 
-def cum3est (signal, maxlag, nsamp, overlap, flag, k1):
+def cum3est (signal, maxlag, nsamp, overlap=0, flag="unbiased", k1=0):
     """
     CUM3EST Third-order cumulants.
         y: input data vector (column)
@@ -87,7 +88,7 @@ def cum3est (signal, maxlag, nsamp, overlap, flag, k1):
 
     return y_cum*scale/nrecord
 
-def cum4est (signal, maxlag, nsamp, overlap, flag, k1, k2):
+def cum4est (signal, maxlag, nsamp, overlap=0, flag="unbiased", k1=0, k2=0):
     """
     CUM4EST Fourth-order cumulants.
            Computes sample estimates of fourth-order cumulants
