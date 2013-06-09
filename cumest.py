@@ -1,39 +1,5 @@
 import numpy as np
-
-def cum2x (x,y, maxlag, nsamp, overlap, flag):
-    assert len(x) == len(y), "The two signal should be same length!"
-    assert maxlag >= 0, " 'maxlag' must be non-negative!"
-    if nsamp > len(x) or nsamp <= 0:
-        nsamp = len(x)
-    overlap = overlap/100*nsamp
-    nadvance = nsamp - overlap
-    nrecs  = (len(x)-overlap)/nadvance
-    nlags = 2*maxlag+1
-    y_cum = np.zeros(nlags, dtype=float)
-
-    if flag == "biased":
-        scale = np.ones(nlags, dtype=float)/nsamp
-    elif flag == "unbiased":
-        scale = np.array(range(nsamp-maxlag,nsamp+1)+range(nsamp-1,nsamp-maxlag-1,-1))
-        scale = np.ones(2*maxlag+1, dtype=float)/scale
-    else:
-        raise Exception("The flag should be either 'biased' or 'unbiased'!!")
-
-    ind = 0
-    for k in range(nrecs):
-        xs = x[ind:(ind+nsamp)]
-        xs = xs - float(sum(xs))/len(xs)
-        ys = y[ind:(ind+nsamp)]
-        ys = ys - float(sum(ys))/len(ys)
-        y_cum[maxlag] += reduce(lambda m,n:m+n,xs*ys, 0)
-        for m in range(1,maxlag+1):
-            y_cum[maxlag-m] = y_cum[maxlag-m]+reduce(lambda i,j:i+j,xs[m:nsamp]*ys[:nsamp-m])
-            y_cum[maxlag+m] = y_cum[maxlag+m]+reduce(lambda i,j:i+j,xs[:nsamp-m]*ys[m:nsamp])
-        ind += nadvance
-    return y_cum*scale/nrecs
-
-
-
+from cumxst import cum2x
 
 def cum2est (signal, maxlag, nsamp, overlap, flag):
     """

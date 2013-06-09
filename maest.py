@@ -63,7 +63,7 @@ def maest(y,q, norder=3,samp_seg=1,overlap=0,flag='biased'):
     """
     MAEST  MA parameter estimation via the GM-RCLS algorithm, with Tugnait's fix
         y  - time-series (vector or matrix)
-        q  - MA order
+        q  - MA order (equivalent to maxlag in cumest)
         norder - cumulant-order to use  [default = 3]
         samp_seg - samples per segment for cumulant estimation
                   [default: length of y]
@@ -100,8 +100,12 @@ def maest(y,q, norder=3,samp_seg=1,overlap=0,flag='biased'):
     rvec0 = rvec0[row_sel]
 
     bvec = lstsq(amat0, rvec0)[0]
+    print bvec
+    print bvec.shape
     b1 = bvec[1:q+1]/bvec[0]
     b2 = bvec[q+1:2*q+1]
+    print b1
+    print b2
     if norder == 3:
         if all(b2 > 0):
             b1 = np.sign(b1) * np.sqrt(0.5*(b1**2 + b2))
