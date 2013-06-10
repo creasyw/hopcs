@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.linalg import toeplitz, lstsq
 from cumest import cumest
-from pcs_cumest import cumx
+from cumxst import cumx
 
 def maestx(y, pcs, q, norder=3,samp_seg=1,overlap=0):
     """
@@ -100,12 +100,8 @@ def maest(y,q, norder=3,samp_seg=1,overlap=0,flag='biased'):
     rvec0 = rvec0[row_sel]
 
     bvec = lstsq(amat0, rvec0)[0]
-    print bvec
-    print bvec.shape
     b1 = bvec[1:q+1]/bvec[0]
     b2 = bvec[q+1:2*q+1]
-    print b1
-    print b2
     if norder == 3:
         if all(b2 > 0):
             b1 = np.sign(b1) * np.sqrt(0.5*(b1**2 + b2))
