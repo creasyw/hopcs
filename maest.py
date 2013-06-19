@@ -59,7 +59,7 @@ def maestx(y, pcs, q, norder=3,samp_seg=1,overlap=0):
     return np.hstack(([1], b1))
 
 
-def maest(y,q, norder=3,samp_seg=1,overlap=0,flag='biased'):
+def maest(y,q, norder=3,samp_seg=1,overlap=0,flag='unbiased'):
     """
     MAEST  MA parameter estimation via the GM-RCLS algorithm, with Tugnait's fix
         y  - time-series (vector or matrix)
@@ -77,16 +77,23 @@ def maest(y,q, norder=3,samp_seg=1,overlap=0,flag='biased'):
 
     c2 = cumest(y,2,q, samp_seg, overlap, flag)
     c2 = np.hstack((c2, np.zeros(q)))
+    # c_3(0, q, 0) or c_4(0, q, 0, 0)
+    # TODO: 1. not sure the use of reverse of cumd
+    #       2. the cumd and cumq are mismatched with reference:
+    #          GM should use c_3(0,q,q)
     cumd = cumest(y,norder,q,samp_seg,overlap,flag,0,0)[::-1]
+    # c_3(0, q, q) or c_4(0, q, q, 0)
     cumq = cumest(y,norder,q,samp_seg,overlap,flag,q,0)
     cumd = np.hstack((cumd, np.zeros(q)))
     cumq[:q] = np.zeros(q)
 
+    # combine 2nd-order with higher-order to find unique coefficients
     cmat = toeplitz(cumd, np.hstack((cumd[0],np.zeros(q))))
     rmat = toeplitz(c2,   np.hstack((c2[0],np.zeros(q))))
     amat0 = np.hstack((cmat, -rmat[:,1:q+1]))
     rvec0 = c2
 
+    # The Tugnait fix
     cumq = np.hstack((cumq[2*q:q-1:-1], np.zeros(q)))
     cmat4 = toeplitz(cumq, np.hstack((cumq[0],np.zeros(q))))
     c3   = cumd[:2*q+1]
