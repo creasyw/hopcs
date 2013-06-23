@@ -77,13 +77,9 @@ def maest(y,q, norder=3,samp_seg=1,overlap=0,flag='unbiased'):
 
     c2 = cumest(y,2,q, samp_seg, overlap, flag)
     c2 = np.hstack((c2, np.zeros(q)))
-    # c_3(0, q, 0) or c_4(0, q, 0, 0)
-    # TODO: 1. not sure the use of reverse of cumd
-    #       2. the cumd and cumq are mismatched with reference:
-    #          GM should use c_3(0,q,q)
     cumd = cumest(y,norder,q,samp_seg,overlap,flag,0,0)[::-1]
-    # c_3(0, q, q) or c_4(0, q, q, 0)
-    cumq = cumest(y,norder,q,samp_seg,overlap,flag,q,0)
+    #cumq = cumest(y,norder,q,samp_seg,overlap,flag,q,0)
+    cumq = cumest(y,norder,q,samp_seg,overlap,flag,q,q)
     cumd = np.hstack((cumd, np.zeros(q)))
     cumq[:q] = np.zeros(q)
 
@@ -96,7 +92,7 @@ def maest(y,q, norder=3,samp_seg=1,overlap=0,flag='unbiased'):
     # The Tugnait fix
     cumq = np.hstack((cumq[2*q:q-1:-1], np.zeros(q)))
     cmat4 = toeplitz(cumq, np.hstack((cumq[0],np.zeros(q))))
-    c3   = cumd[:2*q+1]
+    c3 = cumd[:2*q+1]
     amat0 = np.vstack((np.hstack((amat0, np.zeros((3*q+1,1)))), \
             np.hstack((np.hstack((np.zeros((2*q+1,q+1)), cmat4[:,1:q+1])), \
             np.reshape(-c3,(len(c3),1))))))
