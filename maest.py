@@ -22,7 +22,7 @@ def maestx(y, pcs, q, norder=3,samp_seg=1,overlap=0):
     c2 = cumx(y, pcs, 2,q, samp_seg, overlap)
     c2 = np.hstack((c2, np.zeros(q)))
     cumd = cumx(y, pcs, norder,q,samp_seg,overlap,0,0)[::-1]
-    cumq = cumx(y, pcs, norder,q,samp_seg,overlap,q,0)
+    cumq = cumx(y, pcs, norder,q,samp_seg,overlap,q,q)
     cumd = np.hstack((cumd, np.zeros(q)))
     cumq[:q] = np.zeros(q)
 
