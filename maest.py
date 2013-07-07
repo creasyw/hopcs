@@ -77,10 +77,15 @@ def maest(y,q, norder=3,samp_seg=1,overlap=0,flag='unbiased'):
 
     c2 = cumest(y,2,q, samp_seg, overlap, flag)
     c2 = np.hstack((c2, np.zeros(q)))
+    # c(q,0), c(q-1,0),..., c(0,0),..., c(-q,0)
     cumd = cumest(y,norder,q,samp_seg,overlap,flag,0,0)[::-1]
     #cumq = cumest(y,norder,q,samp_seg,overlap,flag,q,0)
     cumq = cumest(y,norder,q,samp_seg,overlap,flag,q,q)
+
+    # len(cumd) = 3q+1
     cumd = np.hstack((cumd, np.zeros(q)))
+    # get rid of c(-q,q), c(-q+1,q)...c(-1,q)
+    # and left: 0,...,0, c(0,q), c(1,q),..., c(q,q)
     cumq[:q] = np.zeros(q)
 
     # combine 2nd-order with higher-order to find unique coefficients
@@ -90,6 +95,8 @@ def maest(y,q, norder=3,samp_seg=1,overlap=0,flag='unbiased'):
     rvec0 = c2
 
     # The Tugnait fix
+    # The original algo. has -c(k,q) for the coefficients, here are positive
+    # hence, the -c3 and -cmat4 added as the negative counterpart
     cumq = np.hstack((cumq[2*q:q-1:-1], np.zeros(q)))
     cmat4 = toeplitz(cumq, np.hstack((cumq[0],np.zeros(q))))
     c3 = cumd[:2*q+1]
@@ -98,6 +105,7 @@ def maest(y,q, norder=3,samp_seg=1,overlap=0,flag='unbiased'):
             np.reshape(-c3,(len(c3),1))))))
     rvec0 = np.hstack((rvec0, -cmat4[:,0]))
 
+    # get rid of R(0) term
     row_sel = range(q)+range(2*q+1,3*q+1)+range(3*q+1,4*q+1)+range(4*q+2,5*q+2)
     amat0 = amat0[row_sel,:]
     rvec0 = rvec0[row_sel]
@@ -105,6 +113,7 @@ def maest(y,q, norder=3,samp_seg=1,overlap=0,flag='unbiased'):
     bvec = lstsq(amat0, rvec0)[0]
     b1 = bvec[1:q+1]/bvec[0]
     b2 = bvec[q+1:2*q+1]
+
     if norder == 3:
         if all(b2 > 0):
             b1 = np.sign(b1) * np.sqrt(0.5*(b1**2 + b2))
