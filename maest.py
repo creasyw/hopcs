@@ -52,10 +52,11 @@ def maestx(y, pcs, q, norder=3,samp_seg=1,overlap=0):
         else:
             print 'MAEST: alternative solution b1 used'
     else:
-        if all(np.sign(b2) == np.sign(b1)):
-            b1 = np.sign(b1)* (abs(b1) + abs(b2)**(1./3))/2
-        else:
-            print 'MAEST: alternative solution b1 used'
+        b1 = np.sign(b2)* (abs(b1) + abs(b2)**(1./3))/2
+#        if all(np.sign(b2) == np.sign(b1)):
+#            b1 = np.sign(b1)* (abs(b1) + abs(b2)**(1./3))/2
+#        else:
+#            print 'MAEST: alternative solution b1 used'
     return np.hstack(([1], b1))
 
 
