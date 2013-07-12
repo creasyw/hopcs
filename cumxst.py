@@ -11,6 +11,174 @@ def sampling (signal, factor):
     return np.array([signal[k] if k%factor==0 else 0 for k in range(len(signal))])
 
 
+def cum3x_pcs (x, y, z, maxlag=0, nsamp=1, overlap=0, k1=0):
+    """
+    CUM3X Third-order cross-cumulants.
+        x,y,z  - data vectors/matrices with identical dimensions
+                 if x,y,z are matrices, rather than vectors, columns are
+                 assumed to correspond to independent realizations,
+                 overlap is set to 0, and samp_seg to the row dimension.
+        maxlag - maximum lag to be computed    [default = 0]
+        samp_seg - samples per segment  [default = data_length]
+        overlap - percentage overlap of segments [default = 0]
+                  overlap is clipped to the allowed range of [0,99].
+        flag : 'biased', biased estimates are computed  [default]
+               'unbiased', unbiased estimates are computed.
+        k1: the fixed lag in c3(m,k1): defaults to 0
+    Return:
+        y_cum:  estimated third-order cross cumulant,
+                E x^*(n)y(n+m)z(n+k1),   -maxlag <= m <= maxlag
+    """
+    assert len(x) == len(y) == len(z), "the length of signal should be the same!"
+    assert 0<=nsamp<=len(x), "The length of segment is illegal."
+    overlap = overlap/100*nsamp
+    nadvance = nsamp - overlap
+    nrecs  = (len(x)-overlap)/nadvance
+    nlags = 2*maxlag+1
+    y_cum = np.zeros(nlags, dtype=float)
+    count = np.zeros(nlags, dtype=float)
+
+    if k1 >= 0:
+        indx = range(nsamp-k1)
+        indz = range(k1, nsamp)
+    else:
+        indx = range(-k1, nsamp)
+        indz = range(nsamp+k1)
+    ind = 0
+    # in current settings, the input pcs has already been zero-mean, and is real signal
+    for k in range(nrecs):
+        xs = x[ind:(ind+nsamp)]
+        #xs = np.array([j-float(sum(xs))/sum(1 for i in xs if i!=0) if j!=0 else 0 for j in xs])
+        ys = y[ind:(ind+nsamp)]
+        #ys = np.array([j-float(sum(ys))/sum(1 for i in ys if i!=0) if j!=0 else 0 for j in ys])
+        zs = z[ind:(ind+nsamp)]
+        #zs = np.conjugate(np.array([j-float(sum(zs))/sum(1 for i in zs if i!=0) if j!=0 else 0 for j in zs]))
+
+        u = np.zeros(nsamp, dtype=float)
+        u[indx[0]:indx[-1]+1] = xs[indx]*zs[indz]
+
+        temp = u*ys
+        y_cum[maxlag] += reduce(lambda m,n:m+n,temp, 0)
+        count[maxlag] += sum(1 for i in temp if i!=0)
+        for m in range(1,maxlag+1):
+            temp = u[m:nsamp]*ys[:nsamp-m]
+            y_cum[maxlag-m] = y_cum[maxlag-m]+reduce(lambda i,j:i+j,temp, 0)
+            count[maxlag-m] += sum(1 for i in temp if i!=0)
+            temp = u[:nsamp-m]*ys[m:nsamp]
+            y_cum[maxlag+m] = y_cum[maxlag+m]+reduce(lambda i,j:i+j,temp, 0)
+            count[maxlag+m] += sum(1 for i in temp if i!=0)
+        ind += nadvance
+#    if flag == "biased":
+#        scale = np.ones(nlags, dtype=float)/nsamp/nrecs
+#    elif flag == "unbiased":
+#        lsamp = nsamp-abs(k1)
+#        scale = np.array(range(lsamp-maxlag,lsamp+1)+range(lsamp-1,lsamp-maxlag-1,-1))
+#        scale = np.ones(len(scale), dtype=float)/scale/nrecs
+#    else:
+#        raise Exception("The flag should be either 'biased' or 'unbiased'!!")
+    return y_cum/count
+
+# in this algo. (w, y, z) have the same priority, rotating them will not
+# affact the final results. In contrast, x has higher priority.
+def cum4x_pcs (w, x, y, z, maxlag=0, nsamp=1, overlap=0, k1=0, k2=0):
+    """
+    CUM4EST Fourth-order cumulants.
+           Computes sample estimates of fourth-order cumulants
+           via the overlapped segment method.
+    
+           y_cum = cum4est (y, maxlag, samp_seg, overlap, flag, k1, k2)
+           y: input data vector (column)
+           maxlag: maximum lag
+           samp_seg: samples per segment
+           overlap: percentage overlap of segments
+           flag : 'biased', biased estimates are computed     (DISABLED)
+                  'unbiased', unbiased estimates are computed.
+           k1,k2 : the fixed lags in C3(m,k1) or C4(m,k1,k2); see below
+           y_cum : estimated fourth-order cumulant slice
+                  C4(m,k1,k2)  -maxlag <= m <= maxlag
+    """
+    length = len(x)
+    assert length==len(y)==len(z)==len(w), "The four input signals should have same length!"
+    assert maxlag>=0, "maxlag should be nonnegative!"
+    assert 0<nsamp<=length, "The segmentation setting is illegal!"
+
+    overlap0 = overlap
+    overlap = overlap/100*nsamp
+    nadvance = nsamp - overlap
+    nrecs = (length-overlap)/nadvance
+    nlags = 2 * maxlag +1
+
+    y_cum = np.zeros(nlags, dtype=float)
+    rind = -np.array(range(-maxlag, maxlag+1))
+    ind = 0
+    for i in range(nrecs):
+        count = np.zeros(nlags, dtype=float)
+        tmp = y_cum * 0
+        R_zy = R_wy = M_wz = 0
+
+        ws = w[ind:(ind+nsamp)]
+        xs = x[ind:(ind+nsamp)]
+        zs = z[ind:(ind+nsamp)]
+        cys = ys = y[ind:(ind+nsamp)]
+        ziv = xs*0
+
+        if k1 >= 0:
+            ziv[:nsamp-k1] = ws[:nsamp-k1]*cys[k1:nsamp]
+            temp = ws[:nsamp-k1]*ys[k1:nsamp]
+            R_wy += sum(temp)
+            sc1 = sum(1 for m in temp if m!=0)
+        else:
+            ziv[-k1:nsamp] = ws[-k1:nsamp]*cys[:nsamp+k1]
+            temp = ws[-k1:nsamp]*ys[:nsamp+k1]
+            R_wy += sum(temp)
+            sc1 = sum(1 for m in temp if m!=0)
+        if k2 >= 0:
+            ziv[:nsamp-k2] = ziv[:nsamp-k2] * zs[k2:nsamp]
+            if len(z.shape) == 1:
+                ziv[nsamp-k2:nsamp] = np.zeros(k2)
+            else:
+                ziv[nsamp-k2:nsamp] = np.zeros((k2, z.shape[1]))
+            temp = ws[:nsamp-k2]*zs[k2:nsamp]
+            M_wz += sum(temp)
+            sc2 = sum(1 for m in temp if m!=0)
+        else:
+            ziv[-k2:nsamp] = ziv[-k2:nsamp] * zs[:nsamp+k2]
+            ziv[:-k2] = np.zeros[-k2]
+            temp = ws[-k2:nsamp]*zs[:nsamp-k2]
+            M_wz += sum(temp)
+            sc2 = sum(1 for m in temp if m!=0)
+        if k1-k2 >= 0:
+            temp = zs[:nsamp-k1+k2]*ys[k1-k2:nsamp]
+            R_zy += sum(temp)
+            sc12 = sum(1 for m in temp if m!=0)
+        else:
+            temp = zs[-k1+k2:nsamp]*ys[:nsamp-k2+k1]
+            R_zy += sum(temp)
+            sc12 = sum(1 for m in temp if m!=0)
+        
+        temp = ziv*xs
+        tmp[maxlag] += sum(temp)
+        count[maxlag] += sum(1 for m in temp if m!=0)
+        for k in range(1, maxlag+1):
+            temp = ziv[k:nsamp]*xs[:nsamp-k]
+            tmp[maxlag-k] += sum(temp)
+            count[maxlag-k] += sum(1 for m in temp if m!=0)
+            temp = ziv[:nsamp-k]*xs[k:nsamp]
+            tmp[maxlag+k] += sum(temp)
+            count[maxlag+k] += sum(1 for m in temp if m!=0)
+        
+        y_cum += [tmp[m]/count[m] if count[m]!=0 else 0 for m in range(len(count))]
+        R_wx = cum2x(ws, xs, maxlag, nsamp, overlap0)
+        R_zx = cum2x(zs, xs, maxlag+abs(k2), nsamp, overlap0)
+        M_yx = cum2x(cys, xs, maxlag+abs(k1), nsamp, overlap0)
+
+        y_cum = y_cum - R_zy*R_wx/sc12 - R_wy*R_zx[-k2+abs(k2):2*maxlag-k2+abs(k2)+1] /sc1 \
+                - M_wz*M_yx[-k1+abs(k1):2*maxlag-k1+abs(k1)+1]/sc2
+        ind += nadvance
+
+    return y_cum/nrecs
+
+
 def cum3x (x, y, z, maxlag=0, nsamp=1, overlap=0, k1=0):
     """
     CUM3X Third-order cross-cumulants.
@@ -265,11 +433,11 @@ def cumx (y, pcs, norder=2,maxlag=0,nsamp=0,overlap=0,k1=0,k2=0):
         return cum2x (sampling(y,pcs[0]), sampling(y,pcs[1]), maxlag, nsamp, overlap)
     elif norder == 3:
         assert len(pcs)>=3, "There is not sufficient PCS coefficients!"
-        return cum3x (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
+        return cum3x_pcs (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
                 maxlag, nsamp, overlap, k1)
     elif norder == 4:
         assert len(pcs)>=4, "There is not sufficient PCS coefficients!"
-        return cum4x (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
+        return cum4x_pcs (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
                 sampling(y,pcs[3]), maxlag, nsamp, overlap, k1, k2)
     else:
         raise Exception("Cumulant order must be 2, 3, or 4!")
