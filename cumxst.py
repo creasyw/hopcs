@@ -427,20 +427,37 @@ def cumx (y, pcs, norder=2,maxlag=0,nsamp=0,overlap=0,k1=0,k2=0):
     assert maxlag>0, "maxlag must be non-negative!"
     assert nsamp>=0 and nsamp<len(y), "The number of samples is illigal!"
     if nsamp == 0: nsamp = len(y)
+    result = []
 
     if norder == 2:
         assert len(pcs)>=2, "There is not sufficient PCS coefficients!"
         return cum2x (sampling(y,pcs[0]), sampling(y,pcs[1]), maxlag, nsamp, overlap)
     elif norder == 3:
         assert len(pcs)>=3, "There is not sufficient PCS coefficients!"
-        return cum3x_pcs (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
-                maxlag, nsamp, overlap, k1)
+        result.append(cum3x_pcs (sampling(y,pcs[0]), sampling(y,pcs[1]), \
+                sampling(y,pcs[2]), maxlag, nsamp, overlap, k1))
+        result.append(cum3x_pcs (sampling(y,pcs[0]), sampling(y,pcs[2]), \
+                sampling(y,pcs[1]), maxlag, nsamp, overlap, k1))
+        result.append(cum3x_pcs (sampling(y,pcs[2]), sampling(y,pcs[0]), \
+                sampling(y,pcs[1]), maxlag, nsamp, overlap, k1))
+#        return cum3x_pcs (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
+#                maxlag, nsamp, overlap, k1)
     elif norder == 4:
         assert len(pcs)>=4, "There is not sufficient PCS coefficients!"
-        return cum4x_pcs (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
-                sampling(y,pcs[3]), maxlag, nsamp, overlap, k1, k2)
+
+        # The current rotation assumes that the 1st and 2nd in pcs are 1
+        result.append(cum4x_pcs (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
+                sampling(y,pcs[3]), maxlag, nsamp, overlap, k1, k2))
+        result.append(cum4x_pcs (sampling(y,pcs[0]), sampling(y,pcs[2]), sampling(y,pcs[1]), \
+                sampling(y,pcs[3]), maxlag, nsamp, overlap, k1, k2))
+        result.append(cum4x_pcs (sampling(y,pcs[0]), sampling(y,pcs[3]), sampling(y,pcs[2]), \
+                sampling(y,pcs[1]), maxlag, nsamp, overlap, k1, k2))
+#        return cum4x_pcs (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
+#                sampling(y,pcs[3]), maxlag, nsamp, overlap, k1, k2)
     else:
         raise Exception("Cumulant order must be 2, 3, or 4!")
+    
+    return np.mean(np.array(result), 0)
 
 if __name__=="__main__":
     test()
