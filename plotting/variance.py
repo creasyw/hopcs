@@ -43,6 +43,22 @@ def to_percent(y, position):
     else:
         return s + '%'
 
+def plotting5(m):
+    xlen = range(len(m))
+    plt.plot(xlen, m[:,0], "-", label=r'$C_{3y}(-2,0)$')
+    plt.plot(xlen, m[:,1], "--", label=r'$C_{3y}(-1,0)$')
+    plt.plot(xlen, m[:,2], "-.", label=r'$C_{3y}(0,0)$')
+    plt.plot(xlen, m[:,3], ":", label=r'$C_{3y}(1,0)$')
+    plt.plot(xlen, m[:,4], "o", label=r'$C_{3y}(2,0)$')
+    
+    plt.ylim((0,1))
+    plt.xlabel("Length of signal")
+    plt.ylabel("Proportion of standard deviation and expectation")
+    formatter = FuncFormatter(to_percent)
+    plt.gca().yaxis.set_major_formatter(formatter)
+    plt.legend(loc=0, ncol=2)
+    plt.savefig("convergence_ma3_short_cumulant_pcs123.pdf", fmt='pdf')
+
 def plotting11(m):
     xlen = range(len(m))
     plt.plot(xlen, m[:,0], "-", label=r'$C_{3y}(-5,0)$')
@@ -58,14 +74,17 @@ def plotting11(m):
     plt.plot(xlen, m[:,10], "*", label=r'$C_{3y}(5,0)$')
 
     plt.ylim((0,1.5))
+    plt.xlabel("Length of signal")
+    plt.ylabel("Proportion of standard deviation and expectation")
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
-    plt.show()
+    plt.savefig("convergence_ma3_long_cumulant_pcs123.pdf", fmt='pdf')
+    #plt.show()
 
 if __name__ == "__main__":
-    filename = "result_long.txt"
+    filename = "result_short.txt"
     result = calculte(filename)
-    plotting11(result)
+    plotting5(result)
 
 
