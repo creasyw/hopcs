@@ -4,14 +4,19 @@ import re
 import sys, os
 import numpy as np
 
-def avg(lst):
-    return sum(lst)/float(len(lst))
+short_taps = np.array([1, -2.333, 0.667])
+long_taps = np.array([1, 0.1, -1.87, 3.02, -1.435, 0.49])
 
-def var(lst):
-    lavg = avg(lst)
-    diff = [k-lavg for k in lst]
-    return sum(diff)/float(len(diff))
-
+def rmse(estimate):
+    lags = len(estimate[0])
+    length = len(estimate)
+    if lags == 3:
+        benchmark = short_taps
+    elif lags == 6:
+        benchmark = long_taps
+    else:
+        raise Exception("The length of data is incorrect.")
+    return np.sqrt(sum(map(lambda x: (x-benchmark)**2, estimate))/length)
 
 
 def main():
@@ -40,6 +45,7 @@ def main():
     print "\n", filename
     print np.mean(result, 0)
     print np.var(result,0)
+    print rmse(result)
     return result
 
 
