@@ -87,7 +87,7 @@ def plottingcx11(m):
     plt.show()
 
 def plotting_long(ma):
-    m = ma[2::3,:]/np.absolute(long_taps)
+    m = percentage(ma)
     xlen = range(len(m))
     ax = plt.gca()
     plt.plot(xlen, m[:,1], "-", label=r'$tap_1$')
@@ -96,18 +96,34 @@ def plotting_long(ma):
     plt.plot(xlen, m[:,4], "^", label=r'$tap_4$')
     plt.plot(xlen, m[:,5], "-.", label=r'$tap_5$')
 
-    #plt.ylim((0,2))
+    plt.ylim((0,10))
     plt.xlabel(r"Length of signal $(10^4)$")
     plt.ylabel("Proportion of standard deviation and expectation")
-    #formatter = FuncFormatter(to_percent)
-    #plt.gca().yaxis.set_major_formatter(formatter)
+    formatter = FuncFormatter(to_percent)
+    plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
-    plt.savefig("convergence_ma3_long_cumulant_pcs123.pdf", fmt='pdf')
+    plt.savefig("convergence_ma4_long_cumulant_pcs1123.pdf", fmt='pdf')
+    plt.show()
+
+def plotting_short(ma):
+    m = percentage(ma)
+    xlen = range(len(m))
+    ax = plt.gca()
+    plt.plot(xlen, m[:,1], "-", label=r'$tap_1$')
+    plt.plot(xlen, m[:,2], "--", label=r'$tap_2$')
+
+    plt.ylim((0,7))
+    plt.xlabel(r"Length of signal $(10^4)$")
+    plt.ylabel("Proportion of standard deviation and expectation")
+    formatter = FuncFormatter(to_percent)
+    plt.gca().yaxis.set_major_formatter(formatter)
+    plt.legend(loc=0, ncol=2)
+    plt.savefig("convergence_ma4_short_cumulant_pcs1123.pdf", fmt='pdf')
     plt.show()
 
 
 if __name__ == "__main__":
-    filename = "convergence_ma3_long_cumulant_pcs123.txt"
+    filename = "convergence_ma4_long_cumulant_pcs1123.txt"
     result = calculte(filename)
     plotting_long(result)
 
