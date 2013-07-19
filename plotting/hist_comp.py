@@ -52,8 +52,6 @@ def hist_plot(m, n):
 
     #plt.hist((x,x), weights=(w1,w2), label=["PCS(3)", "PCS(4)"], **common_params)
     #plt.legend(loc=0)
-    w2[9] = 100
-    print w2
     plt.hist(x, weights=w2, **common_params)
 
     #ax2 = plt.twinx()
