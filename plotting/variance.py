@@ -5,9 +5,11 @@ import re
 import sys, os
 import numpy as np
 
+long_taps = np.array([1, 0.1, -1.87, 3.02, -1.435, 0.49])
+
+
 def percentage (m):
-    # standard deviation / original values
-    return np.sqrt(m[1::2,:])/ np.absolute(m[0::2,:])
+    return np.sqrt(m[1::3,:])/ np.absolute(m[0::3,:])
 
 
 def calculte(filename):
@@ -30,7 +32,8 @@ def calculte(filename):
             else:
                 temp += hit
 
-    return percentage(np.array(result))
+    #return percentage(np.array(result))
+    return np.array(result)
 
 def to_percent(y, position):
     # Ignore the passed in position. This has the effect of scaling the default
@@ -43,7 +46,7 @@ def to_percent(y, position):
     else:
         return s + '%'
 
-def plotting5(m):
+def plottingcx5(m):
     xlen = range(len(m))
     plt.plot(xlen, m[:,0], "-.", label=r'$C_{3y}(-2,0)$')
     plt.plot(xlen, m[:,1], "--", label=r'$C_{3y}(-1,0)$')
@@ -59,7 +62,7 @@ def plotting5(m):
     plt.legend(loc=0, ncol=2)
     plt.savefig("convergence_ma3_short_cumulant_pcs123.pdf", fmt='pdf')
 
-def plotting11(m):
+def plottingcx11(m):
     xlen = range(len(m))
     ax = plt.gca()
     plt.plot(xlen, m[:,0], ":", label=r'$C_{3y}(-5,0)$')
@@ -83,9 +86,29 @@ def plotting11(m):
     plt.savefig("convergence_ma3_long_cumulant_pcs123.pdf", fmt='pdf')
     plt.show()
 
+def plotting_long(ma):
+    m = ma[2::3,:]/np.absolute(long_taps)
+    xlen = range(len(m))
+    ax = plt.gca()
+    plt.plot(xlen, m[:,1], "-", label=r'$tap_1$')
+    plt.plot(xlen, m[:,2], "--", label=r'$tap_2$')
+    plt.plot(xlen, m[:,3], "o", label=r'$tap_3$')
+    plt.plot(xlen, m[:,4], "^", label=r'$tap_4$')
+    plt.plot(xlen, m[:,5], "-.", label=r'$tap_5$')
+
+    #plt.ylim((0,2))
+    plt.xlabel(r"Length of signal $(10^4)$")
+    plt.ylabel("Proportion of standard deviation and expectation")
+    #formatter = FuncFormatter(to_percent)
+    #plt.gca().yaxis.set_major_formatter(formatter)
+    plt.legend(loc=0, ncol=2)
+    plt.savefig("convergence_ma3_long_cumulant_pcs123.pdf", fmt='pdf')
+    plt.show()
+
+
 if __name__ == "__main__":
-    filename = "convergence_ma3_short_cumulant_pcs123.txt"
+    filename = "convergence_ma3_long_cumulant_pcs123.txt"
     result = calculte(filename)
-    plotting5(result)
+    plotting_long(result)
 
 

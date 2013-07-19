@@ -48,15 +48,18 @@ def hist_plot(m, n):
     x = np.arange(0,10)
     w1 = np.array([m[k/2,1] if k%2==0 else m[k%2,2] for k in range(10)])
     w2 = np.array([n[k/2,1] if k%2==0 else n[k%2,2] for k in range(10)])
-    common_params = dict(bins=10, range=(0,10), normed=True)
+    common_params = dict(bins=10, range=(0,10), normed=False)
 
-    plt.hist((x,x), weights=(w1,w2), label=["PCS(3)", "PCS(4)"], **common_params)
-    plt.legend(loc=0)
+    #plt.hist((x,x), weights=(w1,w2), label=["PCS(3)", "PCS(4)"], **common_params)
+    #plt.legend(loc=0)
+    w2[9] = 100
+    print w2
+    plt.hist(x, weights=w2, **common_params)
 
-    ax2 = plt.twinx()
-    ax2.plot(x, w1/w2)
-    formatter = FuncFormatter(to_percent)
-    ax2.yaxis.set_major_formatter(formatter)
+    #ax2 = plt.twinx()
+    #ax2.plot(x, w1/w2)
+    #formatter = FuncFormatter(to_percent)
+    #ax2.yaxis.set_major_formatter(formatter)
 
     #plt.xlabel(r"Length of signal $(10^4)$")
     #plt.ylabel("Proportion of standard deviation and expectation")
