@@ -9,7 +9,7 @@ long_taps = np.array([1, 0.1, -1.87, 3.02, -1.435, 0.49])
 
 
 def percentage (m):
-    return np.sqrt(m[1::3,:])/ np.absolute(m[0::3,:])
+    return np.sqrt(m[1::2,:])/ np.absolute(m[0::2,:])
 
 
 def calculte(filename):
@@ -46,7 +46,7 @@ def to_percent(y, position):
     else:
         return s + '%'
 
-def plottingcx5(m):
+def plottingcx5(m, filename):
     xlen = range(len(m))
     plt.plot(xlen, m[:,0], "-.", label=r'$C_{3y}(-2,0)$')
     plt.plot(xlen, m[:,1], "--", label=r'$C_{3y}(-1,0)$')
@@ -60,9 +60,9 @@ def plottingcx5(m):
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
-    plt.savefig("convergence_ma3_short_cumulant_pcs123.pdf", fmt='pdf')
+    plt.savefig(filename, fmt='pdf')
 
-def plottingcx11(m):
+def plottingcx11(m, filename):
     xlen = range(len(m))
     ax = plt.gca()
     plt.plot(xlen, m[:,0], ":", label=r'$C_{3y}(-5,0)$')
@@ -83,10 +83,10 @@ def plottingcx11(m):
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
-    plt.savefig("convergence_ma3_long_cumulant_pcs123.pdf", fmt='pdf')
+    plt.savefig(filename, fmt='pdf')
     plt.show()
 
-def plotting_long(ma):
+def plotting_long(ma, filename):
     m = percentage(ma)
     xlen = range(len(m))
     ax = plt.gca()
@@ -102,10 +102,10 @@ def plotting_long(ma):
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
-    plt.savefig("convergence_ma4_long_cumulant_pcs1123.pdf", fmt='pdf')
+    plt.savefig(filename, fmt='pdf')
     plt.show()
 
-def plotting_short(ma):
+def plotting_short(ma, filename):
     m = percentage(ma)
     xlen = range(len(m))
     ax = plt.gca()
@@ -123,8 +123,18 @@ def plotting_short(ma):
 
 
 if __name__ == "__main__":
-    filename = "convergence_ma4_long_cumulant_pcs1123.txt"
+    filename = "convergence_cx3_long_cumulant_pcs123.txt"
     result = calculte(filename)
-    plotting_long(result)
+
+    filename = filename[:-4]
+    matcher = re.compile("long|short|cx|ma")
+    matched = matcher.findall(filename)
+    if "long" in matched and "cx" in matched:
+        plottingcx11(percentage(result), filename)
+    elif "short" in matched and "cx" in matched:
+        plottingcx5(percentage(result), filename)
+    else:
+        print "You might need to add more plotting functions..."
+
 
 
