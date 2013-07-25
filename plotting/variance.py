@@ -55,12 +55,12 @@ def plottingcx5(m, filename):
     plt.plot(xlen, m[:,4], "o", label=r'$C_{3y}(2,0)$')
     
     plt.ylim((0,1))
-    plt.xlabel(r"Length of signal $(10^4)$")
+    plt.xlabel(r"Length of signal $(\times 10^4)$")
     plt.ylabel("Proportion of standard deviation and expectation")
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
-    plt.savefig(filename, fmt='pdf')
+    plt.savefig(filename, format='pdf')
 
 def plottingcx11(m, filename):
     xlen = range(len(m))
@@ -78,12 +78,12 @@ def plottingcx11(m, filename):
     plt.plot(xlen, m[:,10], "*", label=r'$C_{3y}(5,0)$')
 
     plt.ylim((0,1.5))
-    plt.xlabel(r"Length of signal $(10^4)$")
+    plt.xlabel(r"Length of signal $(\times 10^4)$")
     plt.ylabel("Proportion of standard deviation and expectation")
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
-    plt.savefig(filename, fmt='pdf')
+    plt.savefig(filename, format='pdf')
     plt.show()
 
 def plotting_long(ma, filename):
@@ -97,12 +97,12 @@ def plotting_long(ma, filename):
     plt.plot(xlen, m[:,5], "-.", label=r'$tap_5$')
 
     plt.ylim((0,10))
-    plt.xlabel(r"Length of signal $(10^4)$")
+    plt.xlabel(r"Length of signal $(\times 10^4)$")
     plt.ylabel("Proportion of standard deviation and expectation")
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
-    plt.savefig(filename, fmt='pdf')
+    plt.savefig(filename, format='pdf')
     plt.show()
 
 def plotting_short(ma, filename):
@@ -113,12 +113,12 @@ def plotting_short(ma, filename):
     plt.plot(xlen, m[:,2], "--", label=r'$tap_2$')
 
     plt.ylim((0,7))
-    plt.xlabel(r"Length of signal $(10^4)$")
+    plt.xlabel(r"Length of signal $(\times 10^4)$")
     plt.ylabel("Proportion of standard deviation and expectation")
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
-    plt.savefig("convergence_ma4_short_cumulant_pcs1123.pdf", fmt='pdf')
+    plt.savefig("convergence_ma4_short_cumulant_pcs1123.pdf", format='pdf')
     plt.show()
 
 
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     filename = "convergence_cx3_long_cumulant_pcs123.txt"
     result = calculte(filename)
 
-    filename = filename[:-4]
+    filename = filename[:-4]+".pdf"
     matcher = re.compile("long|short|cx|ma")
     matched = matcher.findall(filename)
     if "long" in matched and "cx" in matched:
