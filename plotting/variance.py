@@ -11,6 +11,9 @@ long_taps = np.array([1, 0.1, -1.87, 3.02, -1.435, 0.49])
 def percentage (m):
     return np.sqrt(m[1::2,:])/ np.absolute(m[0::2,:])
 
+def percentage_3row (m):
+    return np.sqrt(m[1::3,:])/ np.absolute(m[0::3,:])
+
 
 def calculte(filename):
     finder = re.compile("\[|-?\d+\.\d*[eE]?[-+]?\d*|\]")
@@ -86,8 +89,7 @@ def plottingcx11(m, filename):
     plt.savefig(filename, format='pdf')
     plt.show()
 
-def plotting_long(ma, filename):
-    m = percentage(ma)
+def plotting_long(m, filename):
     xlen = range(len(m))
     ax = plt.gca()
     plt.plot(xlen, m[:,1], "-", label=r'$tap_1$')
@@ -96,7 +98,7 @@ def plotting_long(ma, filename):
     plt.plot(xlen, m[:,4], "^", label=r'$tap_4$')
     plt.plot(xlen, m[:,5], "-.", label=r'$tap_5$')
 
-    plt.ylim((0,10))
+    plt.ylim((0,2))
     plt.xlabel(r"Length of signal $(\times 10^4)$")
     plt.ylabel("Proportion of standard deviation and expectation")
     formatter = FuncFormatter(to_percent)
@@ -105,25 +107,24 @@ def plotting_long(ma, filename):
     plt.savefig(filename, format='pdf')
     plt.show()
 
-def plotting_short(ma, filename):
-    m = percentage(ma)
+def plotting_short(m, filename):
     xlen = range(len(m))
     ax = plt.gca()
     plt.plot(xlen, m[:,1], "-", label=r'$tap_1$')
     plt.plot(xlen, m[:,2], "--", label=r'$tap_2$')
 
-    plt.ylim((0,7))
+    plt.ylim((0,2))
     plt.xlabel(r"Length of signal $(\times 10^4)$")
     plt.ylabel("Proportion of standard deviation and expectation")
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
-    plt.savefig("convergence_ma4_short_cumulant_pcs1123.pdf", format='pdf')
+    plt.savefig(filename, format='pdf')
     plt.show()
 
 
 if __name__ == "__main__":
-    filename = "convergence_cx3_long_cumulant_pcs123.txt"
+    filename = "convergence_ma3_short_cumulant_pcs123.txt"
     result = calculte(filename)
 
     filename = filename[:-4]+".pdf"
@@ -133,8 +134,10 @@ if __name__ == "__main__":
         plottingcx11(percentage(result), filename)
     elif "short" in matched and "cx" in matched:
         plottingcx5(percentage(result), filename)
+    elif "long" in matched and "ma" in matched:
+        plotting_long(percentage_3row(result), filename)
+    elif "short" in matched and "ma" in matched:
+        plotting_short(percentage_3row(result), filename)
     else:
         print "You might need to add more plotting functions..."
-
-
 
