@@ -7,11 +7,7 @@ import numpy as np
 
 
 def to_percent(y, position):
-    # Ignore the passed in position. This has the effect of scaling the default
-    # tick locations.
-    s = str(int(100 * y/0.04))
-
-    # The percent symbol needs escaping in latex
+    s = str(int(100 * y))
     if matplotlib.rcParams['text.usetex'] == True:
         return s + r'$\%$'
     else:
@@ -20,22 +16,27 @@ def to_percent(y, position):
 
 def hist_plot(m, n, p):
     x = np.arange(0,7)
-    #w1 = np.array([m[k/2,1] if k%2==0 else m[k%2,2] for k in range(10)])
-    #w2 = np.array([n[k/2,1] if k%2==0 else n[k%2,2] for k in range(10)])
-    common_params = dict(bins=10, range=(0,10), normed=False)
+    ax = plt.subplot(111)
+    common_params = dict(bins=7, range=(0,7), normed=False)
 
-    #plt.hist((x,x), weights=(w1,w2), label=["PCS(3)", "PCS(4)"], **common_params)
-    #plt.legend(loc=0)
     plt.hist((x,x,x), weights=(m,n,p), **common_params)
 
-    #ax2 = plt.twinx()
-    #ax2.plot(x, w1/w2)
-    #formatter = FuncFormatter(to_percent)
-    #ax2.yaxis.set_major_formatter(formatter)
+    ax2 = plt.twinx()
+    ax2.plot(map(lambda i:i+0.5, x), np.array(m)/np.array(n), 'k-.', linewidth=2)
+    formatter = FuncFormatter(to_percent)
+    ax2.yaxis.set_major_formatter(formatter)
+    ax2.set_ylabel("Ratio of RMSE between PCS and original signal", labelpad=10)
 
-    #plt.xlabel(r"Length of signal $(10^4)$")
-    #plt.ylabel("Proportion of standard deviation and expectation")
-    #plt.savefig("convergence_ma3_short_cumulant_pcs123.pdf", fmt='pdf')
+    names = ["MA(3)_tap1","MA(3)_tap2","MA(5)_tap1","MA(5)_tap2","MA(5)_tap3","MA(5)_tap4","MA(5)_tap5"]
+    ax.xaxis.label.set_fontsize(15)
+    ax.yaxis.label.set_fontsize(15)
+    ax.set_xticks([k+0.5 for k in range(7)])
+    ax.set_xticklabels(names,rotation=30, rotation_mode="anchor", ha="right")
+    ax.set_ylabel("Root-mean-square deviation", labelpad=10)
+    ax.set_xlabel("Taps from MA(3) or MA(5) system", labelpad=10)
+    plt.tight_layout()
+
+    plt.savefig("pcs3_vs_benchmark.pdf", format='pdf')
     plt.show()
 
 if __name__ == "__main__":
