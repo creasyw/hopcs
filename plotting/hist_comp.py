@@ -27,13 +27,13 @@ def hist_plot(m, n, p):
     ax2.yaxis.set_major_formatter(formatter)
     ax2.set_ylabel("Ratio of RMSE between PCS and original signal", labelpad=10)
 
-    names = ["MA(3)_tap1","MA(3)_tap2","MA(5)_tap1","MA(5)_tap2","MA(5)_tap3","MA(5)_tap4","MA(5)_tap5"]
+    names = ["MA(2)_tap1","MA(2)_tap2","MA(5)_tap1","MA(5)_tap2","MA(5)_tap3","MA(5)_tap4","MA(5)_tap5"]
     ax.xaxis.label.set_fontsize(15)
     ax.yaxis.label.set_fontsize(15)
     ax.set_xticks([k+0.5 for k in range(7)])
     ax.set_xticklabels(names,rotation=30, rotation_mode="anchor", ha="right")
     ax.set_ylabel("Root-mean-square deviation", labelpad=10)
-    ax.set_xlabel("Taps from MA(3) or MA(5) system", labelpad=10)
+    ax.set_xlabel("Taps from MA(2) or MA(5) system", labelpad=10)
     plt.tight_layout()
 
     plt.savefig("pcs3_vs_benchmark.pdf", format='pdf')
