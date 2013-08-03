@@ -51,38 +51,39 @@ def to_percent(y, position):
 
 def plottingcx5(m, filename):
     xlen = range(len(m))
-    plt.plot(xlen, m[:,0], "-.", label=r'$C_{3y}(-2,0)$')
-    plt.plot(xlen, m[:,1], "--", label=r'$C_{3y}(-1,0)$')
-    plt.plot(xlen, m[:,2], "-", label=r'$C_{3y}(0,0)$')
-    plt.plot(xlen, m[:,3], ":", label=r'$C_{3y}(1,0)$')
-    plt.plot(xlen, m[:,4], "o", label=r'$C_{3y}(2,0)$')
+    plt.plot(xlen, m[:,0], "-.", label=r'$c_{3y}(-2,0)$')
+    plt.plot(xlen, m[:,1], "--", label=r'$c_{3y}(-1,0)$')
+    plt.plot(xlen, m[:,2], "-", label=r'$c_{3y}(0,0)$')
+    plt.plot(xlen, m[:,3], ":", label=r'$c_{3y}(1,0)$')
+    plt.plot(xlen, m[:,4], "o", label=r'$c_{3y}(2,0)$')
     
     plt.ylim((0,1))
     plt.xlabel(r"Length of signal $(\times 10^4)$")
-    plt.ylabel("Proportion of standard deviation and expectation")
+    plt.ylabel("Ratio between standard deviation and expectation")
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
     plt.savefig(filename, format='pdf')
+    plt.show()
 
 def plottingcx11(m, filename):
     xlen = range(len(m))
     ax = plt.gca()
-    plt.plot(xlen, m[:,0], ":", label=r'$C_{3y}(-5,0)$')
-    plt.plot(xlen, m[:,1], "--", label=r'$C_{3y}(-4,0)$')
-    plt.plot(xlen, m[:,2], "-.", label=r'$C_{3y}(-3,0)$')
-    plt.plot(xlen, m[:,3], "o", label=r'$C_{3y}(-2,0)$')
-    plt.plot(xlen, m[:,4], "^", label=r'$C_{3y}(-1,0)$')
-    plt.plot(xlen, m[:,5], "-", label=r'$C_{3y}(0,0)$')
-    plt.plot(xlen, m[:,6], "<", label=r'$C_{3y}(1,0)$')
-    plt.plot(xlen, m[:,7], ">", label=r'$C_{3y}(2,0)$')
-    plt.plot(xlen, m[:,8], "s", label=r'$C_{3y}(3,0)$')
-    plt.plot(xlen, m[:,9], "p", label=r'$C_{3y}(4,0)$')
-    plt.plot(xlen, m[:,10], "*", label=r'$C_{3y}(5,0)$')
+    plt.plot(xlen, m[:,0], ":", label=r'$c_{3y}(-5,0)$')
+    plt.plot(xlen, m[:,1], "--", label=r'$c_{3y}(-4,0)$')
+    plt.plot(xlen, m[:,2], "-.", label=r'$c_{3y}(-3,0)$')
+    plt.plot(xlen, m[:,3], "o", label=r'$c_{3y}(-2,0)$')
+    plt.plot(xlen, m[:,4], "^", label=r'$c_{3y}(-1,0)$')
+    plt.plot(xlen, m[:,5], "-", label=r'$c_{3y}(0,0)$')
+    plt.plot(xlen, m[:,6], "<", label=r'$c_{3y}(1,0)$')
+    plt.plot(xlen, m[:,7], ">", label=r'$c_{3y}(2,0)$')
+    plt.plot(xlen, m[:,8], "s", label=r'$c_{3y}(3,0)$')
+    plt.plot(xlen, m[:,9], "p", label=r'$c_{3y}(4,0)$')
+    plt.plot(xlen, m[:,10], "*", label=r'$c_{3y}(5,0)$')
 
     plt.ylim((0,1.5))
     plt.xlabel(r"Length of signal $(\times 10^4)$")
-    plt.ylabel("Proportion of standard deviation and expectation")
+    plt.ylabel("Ratio between standard deviation and expectation")
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
@@ -100,7 +101,7 @@ def plotting_long(m, filename):
 
     plt.ylim((0,2))
     plt.xlabel(r"Length of signal $(\times 10^4)$")
-    plt.ylabel("Proportion of standard deviation and expectation")
+    plt.ylabel("Ratio between standard deviation and expectation")
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
@@ -115,7 +116,7 @@ def plotting_short(m, filename):
 
     plt.ylim((0,2))
     plt.xlabel(r"Length of signal $(\times 10^4)$")
-    plt.ylabel("Proportion of standard deviation and expectation")
+    plt.ylabel("Ratio between standard deviation and expectation")
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
@@ -124,10 +125,10 @@ def plotting_short(m, filename):
 
 
 if __name__ == "__main__":
-    filename = "convergence_ma3_short_cumulant_pcs123.txt"
+    filename = "convergence_cx4_short_cumulant_pcs1123.txt"
     result = calculte(filename)
 
-    filename = filename[:-4]+".pdf"
+    filename = re.sub(".txt","",filename)+".pdf"
     matcher = re.compile("long|short|cx|ma")
     matched = matcher.findall(filename)
     if "long" in matched and "cx" in matched:
