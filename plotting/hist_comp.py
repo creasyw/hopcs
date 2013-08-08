@@ -22,7 +22,7 @@ def hist_plot(m, n, p):
     plt.hist((x,x,x), weights=(m,n,p), **common_params)
 
     ax2 = plt.twinx()
-    ax2.plot(map(lambda i:i+0.5, x), np.array(m)/np.array(n), 'k-.', linewidth=2)
+    ax2.plot(map(lambda i:i+0.5, x), np.array(m)/np.array(n), linestyle='-.', color='k', marker='o', linewidth=2)
     formatter = FuncFormatter(to_percent)
     ax2.yaxis.set_major_formatter(formatter)
     ax2.set_ylabel("Ratio of RMS between PCS-HOS and HOS", labelpad=10)
@@ -35,6 +35,7 @@ def hist_plot(m, n, p):
     ax.set_ylabel("Root-mean-square error", labelpad=10)
     ax.set_xlabel("Taps from MA(2) or MA(5) system", labelpad=10)
     plt.tight_layout()
+    plt.grid(axis='y')
 
     plt.savefig("pcs3_vs_benchmark.pdf", format='pdf')
     plt.show()
