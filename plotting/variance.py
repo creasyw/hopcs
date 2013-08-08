@@ -51,11 +51,11 @@ def to_percent(y, position):
 
 def plottingcx5(m, filename):
     xlen = range(len(m))
-    plt.plot(xlen, m[:,0], "-.", label=r'$c_{3y}(-2,0)$')
-    plt.plot(xlen, m[:,1], "--", label=r'$c_{3y}(-1,0)$')
+    plt.plot(xlen, m[:,0], linestyle=":", marker="v", label=r'$c_{3y}(-2,0)$')
+    plt.plot(xlen, m[:,1], linestyle=":", marker="^", label=r'$c_{3y}(-1,0)$')
     plt.plot(xlen, m[:,2], "-", label=r'$c_{3y}(0,0)$')
-    plt.plot(xlen, m[:,3], ":", label=r'$c_{3y}(1,0)$')
-    plt.plot(xlen, m[:,4], "o", label=r'$c_{3y}(2,0)$')
+    plt.plot(xlen, m[:,3], linestyle=":", marker="<", label=r'$c_{3y}(1,0)$')
+    plt.plot(xlen, m[:,4], linestyle=":", marker=">", label=r'$c_{3y}(2,0)$')
     
     plt.ylim((0,1))
     plt.xlabel(r"Length of signal $(\times 10^4)$")
@@ -63,23 +63,24 @@ def plottingcx5(m, filename):
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
+    plt.grid()
     plt.savefig(filename, format='pdf')
     plt.show()
 
 def plottingcx11(m, filename):
     xlen = range(len(m))
     ax = plt.gca()
-    plt.plot(xlen, m[:,0], ":", label=r'$c_{3y}(-5,0)$')
-    plt.plot(xlen, m[:,1], "--", label=r'$c_{3y}(-4,0)$')
-    plt.plot(xlen, m[:,2], "-.", label=r'$c_{3y}(-3,0)$')
-    plt.plot(xlen, m[:,3], "o", label=r'$c_{3y}(-2,0)$')
-    plt.plot(xlen, m[:,4], "^", label=r'$c_{3y}(-1,0)$')
+    plt.plot(xlen, m[:,0], linestyle=":", marker="*", label=r'$c_{3y}(-5,0)$')
+    plt.plot(xlen, m[:,1], linestyle=":", marker="p", label=r'$c_{3y}(-4,0)$')
+    plt.plot(xlen, m[:,2], linestyle=":", marker="v", label=r'$c_{3y}(-3,0)$')
+    plt.plot(xlen, m[:,3], linestyle=":", marker="^", label=r'$c_{3y}(-2,0)$')
+    plt.plot(xlen, m[:,4], linestyle=":", marker="h", label=r'$c_{3y}(-1,0)$')
     plt.plot(xlen, m[:,5], "-", label=r'$c_{3y}(0,0)$')
-    plt.plot(xlen, m[:,6], "<", label=r'$c_{3y}(1,0)$')
-    plt.plot(xlen, m[:,7], ">", label=r'$c_{3y}(2,0)$')
-    plt.plot(xlen, m[:,8], "s", label=r'$c_{3y}(3,0)$')
-    plt.plot(xlen, m[:,9], "p", label=r'$c_{3y}(4,0)$')
-    plt.plot(xlen, m[:,10], "*", label=r'$c_{3y}(5,0)$')
+    plt.plot(xlen, m[:,6], linestyle=":", marker="d", label=r'$c_{3y}(1,0)$')
+    plt.plot(xlen, m[:,7], linestyle=":", marker="<", label=r'$c_{3y}(2,0)$')
+    plt.plot(xlen, m[:,8], linestyle=":", marker=">", label=r'$c_{3y}(3,0)$')
+    plt.plot(xlen, m[:,9], linestyle=":", marker="s", label=r'$c_{3y}(4,0)$')
+    plt.plot(xlen, m[:,10], linestyle=":", marker="o", label=r'$c_{3y}(5,0)$')
 
     plt.ylim((0,1.5))
     plt.xlabel(r"Length of signal $(\times 10^4)$")
@@ -87,17 +88,18 @@ def plottingcx11(m, filename):
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
+    plt.grid()
     plt.savefig(filename, format='pdf')
     plt.show()
 
-def plotting_long(m, filename):
+def plottingma5(m, filename):
     xlen = range(len(m))
     ax = plt.gca()
     plt.plot(xlen, m[:,1], "-", label=r'$tap_1$')
-    plt.plot(xlen, m[:,2], "--", label=r'$tap_2$')
-    plt.plot(xlen, m[:,3], "o", label=r'$tap_3$')
-    plt.plot(xlen, m[:,4], "^", label=r'$tap_4$')
-    plt.plot(xlen, m[:,5], "-.", label=r'$tap_5$')
+    plt.plot(xlen, m[:,2], linestyle=":", marker='v', label=r'$tap_2$')
+    plt.plot(xlen, m[:,3], linestyle=":", marker='^', label=r'$tap_3$')
+    plt.plot(xlen, m[:,4], linestyle=":", marker='<', label=r'$tap_4$')
+    plt.plot(xlen, m[:,5], linestyle=":", marker='>', label=r'$tap_5$')
 
     plt.ylim((0,2))
     plt.xlabel(r"Length of signal $(\times 10^4)$")
@@ -105,10 +107,11 @@ def plotting_long(m, filename):
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
+    plt.grid()
     plt.savefig(filename, format='pdf')
     plt.show()
 
-def plotting_short(m, filename):
+def plottingma2(m, filename):
     xlen = range(len(m))
     ax = plt.gca()
     plt.plot(xlen, m[:,1], "-", label=r'$tap_1$')
@@ -120,12 +123,13 @@ def plotting_short(m, filename):
     formatter = FuncFormatter(to_percent)
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
+    plt.grid()
     plt.savefig(filename, format='pdf')
     plt.show()
 
 
 if __name__ == "__main__":
-    filename = "convergence_cx4_short_cumulant_pcs1123.txt"
+    filename = "convergence_cx3_long_cumulant_pcs123.txt"
     result = calculte(filename)
 
     filename = re.sub(".txt","",filename)+".pdf"
@@ -136,9 +140,9 @@ if __name__ == "__main__":
     elif "short" in matched and "cx" in matched:
         plottingcx5(percentage(result), filename)
     elif "long" in matched and "ma" in matched:
-        plotting_long(percentage_3row(result), filename)
+        plottingma5(percentage_3row(result), filename)
     elif "short" in matched and "ma" in matched:
-        plotting_short(percentage_3row(result), filename)
+        plottingma2(percentage_3row(result), filename)
     else:
         print "You might need to add more plotting functions..."
 
