@@ -2,13 +2,14 @@ import numpy as np
 from cumest import cum2est, cum3est, cum4est
 from cum2x import cum2x
 
-def sampling (signal, factor):
+def sampling (signal, winsize, factor):
     """
     Return signals with sampling period given with "factor", and stuff zeros in the interval.
     The format of return values is np.ndarray.
+    The downsampling is performed **within** every winsize
     NOTE: it is different from the same function in "sampling.py".
     """
-    return np.array([signal[k] if k%factor==0 else 0 for k in range(len(signal))])
+    return np.array([signal[k] if (k%winsize)%factor==0 else 0 for k in range(len(signal))])
 
 
 def cum3x_pcs (x, y, z, maxlag=0, nsamp=1, overlap=0, k1=0):
@@ -377,14 +378,14 @@ def test ():
     
     # The 'biased'/'unbiased' flag is disabled for the application of PCS
     # The output result are unbiased estimate of cumulant
-    
+    nsamp = 128
     # For testing 2nd order covariance cummulant.
     # unbiased: [-0.26338305 -0.12444965  0.36246791  1.00586945  0.36246791 -0.12444965 -0.26338305]
     #           [-0.26338305 -0.12444965  0.36246791  1.00586945  0.36246791 -0.12444965 -0.26338305]
     #           [-0.29238304 -0.08591897  0.53114099  0.96679726  0.31127555 -0.15243345 -0.28419847]
     print cum2est(y, 3, 128, 0, 'unbiased')
     print cum2x(y, y, 3, 128, 0)
-    print cum2x(sampling(y,2), sampling(y,3), 3, 128, 0)
+    print cum2x(sampling(y,nsamp,2), sampling(y,nsamp,3), 3, 128, 0)
 
     # For the 3rd covariance cumulant: cum3x(y, y, y, 2, 128, 0, 'unbiased', 0)
     # biased: [ 0.43001919  0.729953    0.75962972  0.67113035 -0.15817154]
@@ -397,17 +398,20 @@ def test ():
     print "\n\n"
     print cum3est(y, 2, 128, 0, 'unbiased', 2)
     print cum3x(y, y, y, 2, 128, 0, 2)
-    print cum3x(sampling(y,2), sampling(y,3), sampling(y,5), 2, 512, 0, 2)
+    print cum3x(sampling(y,nsamp,2), sampling(y,nsamp,3), sampling(y,nsamp,5), 2, 512, 0, 2)
 
     # For testing the 4th-order cumulant
     # [-0.47193102  1.19269534  3.25347883  1.98336563 -0.41528861]
     # [-0.47193102  1.19269534  3.25347883  1.98336563 -0.41528861]
     # [ 0.00768641 -2.41574658 -1.61848376 -0.9939677   1.55133264]
     print "\n\n"
+
+    nsamp = 512
+
     print cum4est(y, 2, 512, 0, 'unbiased', 0, 0)
     print cum4x(y, y, y, y, 2, 512, 0, 0, 0)
     # NOTE: the length of segmentation should larger than the product of PCS factors
-    print cum4x(sampling(y,2), sampling(y,3), sampling(y,5), sampling(y,7), 2, 512, 0, 0, 0)
+    print cum4x(sampling(y,nsamp,2), sampling(y,nsamp,3), sampling(y,nsamp,5), sampling(y,nsamp,7), 2, 512, 0, 0, 0)
 
 
 def cumx (y, pcs, norder=2,maxlag=0,nsamp=0,overlap=0,k1=0,k2=0):
@@ -416,7 +420,7 @@ def cumx (y, pcs, norder=2,maxlag=0,nsamp=0,overlap=0,k1=0,k2=0):
          y - time-series  - should be a vector
          norder - cumulant order: 2, 3 or 4 [default = 2]
          maxlag - maximum cumulant lag to compute [default = 0]
-         samp_seg - samples per segment  [default = data_length]
+         nsamp - samples per segment  [default = data_length]
          overlap - percentage overlap of segments [default = 0]
                    overlap is clipped to the allowed range of [0,99].
          flag  - 'biased' or 'unbiased'  [default = 'biased']
@@ -429,31 +433,38 @@ def cumx (y, pcs, norder=2,maxlag=0,nsamp=0,overlap=0,k1=0,k2=0):
     if nsamp == 0: nsamp = len(y)
     result = []
 
+
+#    from scipy.signal import lfilter, lfilter_zi, butter
+#    b, a = butter(5, 0.25)
+#    zi = lfilter_zi(b, a)
+#    y, _ = lfilter(b, a, y, zi=zi*np
+    
+
     if norder == 2:
         assert len(pcs)>=2, "There is not sufficient PCS coefficients!"
-        return cum2x (sampling(y,pcs[0]), sampling(y,pcs[1]), maxlag, nsamp, overlap)
+        return cum2x (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[1]), maxlag, nsamp, overlap)
     elif norder == 3:
         assert len(pcs)>=3, "There is not sufficient PCS coefficients!"
-        result.append(cum3x_pcs (sampling(y,pcs[0]), sampling(y,pcs[1]), \
-                sampling(y,pcs[2]), maxlag, nsamp, overlap, k1))
-        result.append(cum3x_pcs (sampling(y,pcs[0]), sampling(y,pcs[2]), \
-                sampling(y,pcs[1]), maxlag, nsamp, overlap, k1))
-        result.append(cum3x_pcs (sampling(y,pcs[2]), sampling(y,pcs[0]), \
-                sampling(y,pcs[1]), maxlag, nsamp, overlap, k1))
-#        return cum3x_pcs (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
+        result.append(cum3x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[1]), \
+                sampling(y,nsamp,pcs[2]), maxlag, nsamp, overlap, k1))
+        result.append(cum3x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[2]), \
+                sampling(y,nsamp,pcs[1]), maxlag, nsamp, overlap, k1))
+        result.append(cum3x_pcs (sampling(y,nsamp,pcs[2]), sampling(y,nsamp,pcs[0]), \
+                sampling(y,nsamp,pcs[1]), maxlag, nsamp, overlap, k1))
+#        return cum3x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[1]), sampling(y,nsamp,pcs[2]), \
 #                maxlag, nsamp, overlap, k1)
     elif norder == 4:
         assert len(pcs)>=4, "There is not sufficient PCS coefficients!"
 
         # The current rotation assumes that the 1st and 2nd in pcs are 1
-        result.append(cum4x_pcs (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
-                sampling(y,pcs[3]), maxlag, nsamp, overlap, k1, k2))
-        result.append(cum4x_pcs (sampling(y,pcs[0]), sampling(y,pcs[2]), sampling(y,pcs[1]), \
-                sampling(y,pcs[3]), maxlag, nsamp, overlap, k1, k2))
-        result.append(cum4x_pcs (sampling(y,pcs[0]), sampling(y,pcs[3]), sampling(y,pcs[2]), \
-                sampling(y,pcs[1]), maxlag, nsamp, overlap, k1, k2))
-#        return cum4x_pcs (sampling(y,pcs[0]), sampling(y,pcs[1]), sampling(y,pcs[2]), \
-#                sampling(y,pcs[3]), maxlag, nsamp, overlap, k1, k2)
+        result.append(cum4x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[1]), sampling(y,nsamp,pcs[2]), \
+                sampling(y,nsamp,pcs[3]), maxlag, nsamp, overlap, k1, k2))
+        result.append(cum4x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[2]), sampling(y,nsamp,pcs[1]), \
+                sampling(y,nsamp,pcs[3]), maxlag, nsamp, overlap, k1, k2))
+        result.append(cum4x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[3]), sampling(y,nsamp,pcs[2]), \
+                sampling(y,nsamp,pcs[1]), maxlag, nsamp, overlap, k1, k2))
+#        return cum4x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[1]), sampling(y,nsamp,pcs[2]), \
+#                sampling(y,nsamp,pcs[3]), maxlag, nsamp, overlap, k1, k2)
     else:
         raise Exception("Cumulant order must be 2, 3, or 4!")
     
