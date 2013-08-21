@@ -433,13 +433,6 @@ def cumx (y, pcs, norder=2,maxlag=0,nsamp=0,overlap=0,k1=0,k2=0):
     if nsamp == 0: nsamp = len(y)
     result = []
 
-
-#    from scipy.signal import lfilter, lfilter_zi, butter
-#    b, a = butter(5, 0.25)
-#    zi = lfilter_zi(b, a)
-#    y, _ = lfilter(b, a, y, zi=zi*np
-    
-
     if norder == 2:
         assert len(pcs)>=2, "There is not sufficient PCS coefficients!"
         return cum2x (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[1]), maxlag, nsamp, overlap)
@@ -451,8 +444,6 @@ def cumx (y, pcs, norder=2,maxlag=0,nsamp=0,overlap=0,k1=0,k2=0):
                 sampling(y,nsamp,pcs[1]), maxlag, nsamp, overlap, k1))
         result.append(cum3x_pcs (sampling(y,nsamp,pcs[2]), sampling(y,nsamp,pcs[0]), \
                 sampling(y,nsamp,pcs[1]), maxlag, nsamp, overlap, k1))
-#        return cum3x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[1]), sampling(y,nsamp,pcs[2]), \
-#                maxlag, nsamp, overlap, k1)
     elif norder == 4:
         assert len(pcs)>=4, "There is not sufficient PCS coefficients!"
 
@@ -463,8 +454,6 @@ def cumx (y, pcs, norder=2,maxlag=0,nsamp=0,overlap=0,k1=0,k2=0):
                 sampling(y,nsamp,pcs[3]), maxlag, nsamp, overlap, k1, k2))
         result.append(cum4x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[3]), sampling(y,nsamp,pcs[2]), \
                 sampling(y,nsamp,pcs[1]), maxlag, nsamp, overlap, k1, k2))
-#        return cum4x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[1]), sampling(y,nsamp,pcs[2]), \
-#                sampling(y,nsamp,pcs[3]), maxlag, nsamp, overlap, k1, k2)
     else:
         raise Exception("Cumulant order must be 2, 3, or 4!")
     
