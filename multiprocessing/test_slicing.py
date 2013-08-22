@@ -36,18 +36,6 @@ def task_cx(pcs, taps, winsize, r, slicing):
     print temp
   f.close()
 
-def task_ma(pcs, taps, testing_order, winsize, r, slicing):
-  f = open("ma_order_test_%s_hos%d_%d_slice%d_%d.csv"%(testing_order, len(pcs), winsize, slicing, int(''.join(map(str,pcs)))), 'w')
-  for i in range(r):
-    signal = np.load("/home/q80022617/work/rsls/data/exp_deviate_one_%d.npy"%(i))[:slicing]
-    receive = ir.moving_average(taps, signal)
-    temp = ma.maest (receive, testing_order, len(pcs), winsize)
-    f.write('%s\n' % temp)
-    print temp
-  f.close()
-
-
-
 def main():
   job = Pool(8)
   r = 50
@@ -56,12 +44,6 @@ def main():
 
   taps = [1, -2.333, 0.667]
   pcs = [1,2,3]
-  # test order mismatch
-  for slicing in range(5000,200000,5000):
-    for order in range(2, 9):
-      job.apply_async(task_ma, args=(pcs, taps, order, winsize, r, slicing))
-      print "winsize %s for ma(%s)" % (winsize, len(pcs))
-  
   for slicing in range(10000,710000,10000):
     job.apply_async(task_cx, args=(pcs, taps, winsize, r, slicing))
     print "winsize %s for ma(%s)" % (winsize, len(pcs))
@@ -71,12 +53,6 @@ def main():
     print "winsize %s for ma(%s)" % (winsize, len(pcs))
   
   pcs = [1,1,2,3]
-  # test order mismatch
-  for slicing in range(5000,200000,5000):
-    for order in range(2, 9):
-      job.apply_async(task_ma, args=(pcs, taps, order, winsize, r, slicing))
-      print "winsize %s for ma(%s)" % (winsize, len(pcs))
-  
   for slicing in range(10000,710000,10000):
     job.apply_async(task_cx, args=(pcs, taps, winsize, r, slicing))
     print "winsize %s for ma(%s)" % (winsize, len(pcs))
@@ -87,11 +63,6 @@ def main():
   
   taps = [1, 0.1, -1.87, 3.02, -1.435, 0.49]
   pcs = [1,2,3]
-  for slicing in range(5000,200000,5000):
-    for order in range(2, 9):
-      job.apply_async(task_ma, args=(pcs, taps, order, winsize, r, slicing))
-      print "winsize %s for ma(%s)" % (winsize, len(pcs))
-  
   for slicing in range(10000,710000,10000):
     job.apply_async(task_cx, args=(pcs, taps, winsize, r, slicing))
     print "winsize %s for ma(%s)" % (winsize, len(pcs))
@@ -101,11 +72,6 @@ def main():
     print "winsize %s for ma(%s)" % (winsize, len(pcs))
   
   pcs = [1,1,2,3]
-  for slicing in range(5000,200000,5000):
-    for order in range(2, 9):
-      job.apply_async(task_ma, args=(pcs, taps, order, winsize, r, slicing))
-      print "winsize %s for ma(%s)" % (winsize, len(pcs))
-  
   for slicing in range(10000,710000,10000):
     job.apply_async(task_cx, args=(pcs, taps, winsize, r, slicing))
     print "winsize %s for ma(%s)" % (winsize, len(pcs))
