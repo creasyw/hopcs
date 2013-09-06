@@ -85,12 +85,12 @@ def main():
             job.apply_async(task_cm, args=(3, order, winsize, r, slicing, 500, "white"))
             job.apply_async(task_cm, args=(4, order, winsize, r, slicing, 500, "white"))
             for snr in range(1,101):
-                job.apply_async(task_cx, args=(2, order, winsize, r, slicing, snr, "white"))
-                job.apply_async(task_cx, args=(3, order, winsize, r, slicing, snr, "white"))
-                job.apply_async(task_cx, args=(4, order, winsize, r, slicing, snr, "white"))
-                job.apply_async(task_cx, args=(2, order, winsize, r, slicing, snr, "color"))
-                job.apply_async(task_cx, args=(3, order, winsize, r, slicing, snr, "color"))
-                job.apply_async(task_cx, args=(4, order, winsize, r, slicing, snr, "color"))
+                job.apply_async(task_cm, args=(2, order, winsize, r, slicing, snr, "white"))
+                job.apply_async(task_cm, args=(3, order, winsize, r, slicing, snr, "white"))
+                job.apply_async(task_cm, args=(4, order, winsize, r, slicing, snr, "white"))
+                job.apply_async(task_cm, args=(2, order, winsize, r, slicing, snr, "color"))
+                job.apply_async(task_cm, args=(3, order, winsize, r, slicing, snr, "color"))
+                job.apply_async(task_cm, args=(4, order, winsize, r, slicing, snr, "color"))
 
 
     job.close()
