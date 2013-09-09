@@ -4,16 +4,6 @@ import re
 import sys, os
 import numpy as np
 
-def avg(lst):
-    return sum(lst)/float(len(lst))
-
-def var(lst):
-    lavg = avg(lst)
-    diff = [k-lavg for k in lst]
-    return sum(diff)/float(len(diff))
-
-
-
 def main():
     finder = re.compile("\[|-?\d+\.\d*[eE]?[-+]?\d*|\]")
 
