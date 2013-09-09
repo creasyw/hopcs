@@ -15,8 +15,8 @@ def signal_through_channel(sig_tap, noise_tap, i):
     # snr = 0..20 (scale from 1 to 100)
     for j in range(-10,21):
         amp = 10**(j/10.)
-        white = np.random.normal(0, sum(sig_tap)**2/amp, len(signal))
-        color_scale = sum(sig_tap)**2/amp/(sum(noise_tap)**2)
+        white = np.random.normal(0, sqrt(sum(sig_tap)**2/amp), len(signal))
+        color_scale = sqrt(sum(sig_tap)**2/amp/(sum(noise_tap)**2))
         color = ir.moving_average(noise_tap, np.random.normal(0, color_scale, len(signal)))
         np.save("temp/data_white_%d_%d.npy"%(j, i), white+receive)
         np.save("temp/data_color_%d_%d.npy"%(j, i), color+receive)
