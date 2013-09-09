@@ -4,6 +4,7 @@ from cumest import cumest
 import impulse_response as ir
 from multiprocessing import Process
 from multiprocessing import Pool
+from math import sqrt
 
 # now it can only deal with one choice of sig_tap
 def signal_through_channel(sig_tap, noise_tap, i):
