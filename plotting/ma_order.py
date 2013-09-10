@@ -14,24 +14,41 @@ def to_percent(y, position):
         return s + '%'
 
 
-def hist_plot_one_y(m, n, p, filename):
+def hist_plot_one_y(m, n, p, m1, n1, p1, filename):
     x = np.arange(0,len(m))
-    ax = plt.subplot(111)
     common_params = dict(bins=len(m), range=(0,len(m)), normed=False)
+    from pylab import *
+    # The original setting is 8,6
+    # lookup via "matplotlib.rcParams.values"
+    rcParams['figure.figsize'] = 8, 8
 
+    ax1 = plt.subplot(211)
     plt.hist((x,x,x), weights=(m,n,p), **common_params)
-
     names = ["lag#0","lag#1","lag#2","lag#3","lag#4","lag#5","lag#6"]
-    ax.xaxis.label.set_fontsize(15)
-    ax.yaxis.label.set_fontsize(15)
-    ax.set_xticks([k+0.5 for k in range(7)])
+    ax1.xaxis.label.set_fontsize(15)
+    ax1.yaxis.label.set_fontsize(15)
+    ax1.set_xticks([k+0.5 for k in range(7)])
     #ax.set_xticklabels(names,rotation=30, rotation_mode="anchor", ha="right")
-    ax.set_xticklabels(names)
-    ax.set_ylabel("Amplitude", labelpad=10)
-    ax.set_xlabel("Lags of the model", labelpad=10)
+    ax1.set_xticklabels(names)
+    ax1.set_ylabel("Amplitude of cumulants", labelpad=10)
+    ax1.set_xlabel("Lags of the model", labelpad=10)
     plt.tight_layout()
     plt.grid(axis='y')
 
+    ax1 = plt.subplot(212)
+    plt.hist((x,x,x), weights=(m1,n1,p1), **common_params)
+    names = ["lag#0","lag#1","lag#2","lag#3","lag#4","lag#5","lag#6"]
+    ax1.xaxis.label.set_fontsize(15)
+    ax1.yaxis.label.set_fontsize(15)
+    ax1.set_xticks([k+0.5 for k in range(7)])
+    #ax.set_xticklabels(names,rotation=30, rotation_mode="anchor", ha="right")
+    ax1.set_xticklabels(names)
+    ax1.set_ylabel("Amplitude of cumulants", labelpad=10)
+    ax1.set_xlabel("Lags of the model", labelpad=10)
+    plt.tight_layout()
+    plt.grid(axis='y')
+
+    plt.tight_layout()
     plt.savefig(filename, format='pdf')
     plt.show()
 
@@ -75,8 +92,7 @@ def nonoise_and_gaussian():
     cm3g = [2.68425868, 2.15788692, 1.35342272, 1.60591685, 0.01381513, 0.00614096, 0.02954263]
     cx3g = [2.30306421, 2.0669669, 1.390906, 1.70971455, 0.04802309,  0.01003686, 0.0109114 ]
 
-    hist_plot_one_y(cm2, cm3, cx3, "Noise_free.pdf")
-    hist_plot_one_y(cm2g, cm3g, cx3g, "gaussian.pdf")
+    hist_plot_one_y(cm2, cm3, cx3, cm2g, cm3g, cx3g, "amplitude_works.pdf")
 
 def color_gaussian():
     cm2 = [17.90646902, 5.61932575, 1.84897127, 2.75154841, 5.86796282, 2.40462868, 0.06414782]
@@ -91,6 +107,6 @@ def color_gaussian():
 
 
 if __name__ == "__main__":
-    #nonoise_and_gaussian()
-    color_gaussian()
+    nonoise_and_gaussian()
+    #color_gaussian()
 
