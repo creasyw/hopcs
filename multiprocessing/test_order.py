@@ -13,14 +13,26 @@ def ar_estimate(sig, pcs, ar, ma, winsize):
     for p in range(rb):
         temp = cumx(sig, pcs, 3, 2*ar+ma-1, winsize, 0, p-ar)
         m[p,0] = temp[len(temp)/2]
-        m[p,1:] = (temp[:len(temp)/2][::-1]+temp[len(temp)/2+1:])/2
+        #m[p,1:] = (temp[:len(temp)/2][::-1]+temp[len(temp)/2+1:])/2
+        m[p,1:] = temp[len(temp)/2+1:]
     m = m.T
+
+    # for testing
+#    m = np.zeros((2*ar+ma, rb))
+#    for i in range(len(m)):
+#        for j in range(len(m[0])):
+#            m[i, j] = i*10+j
+#    print m
+
     # put the cumulants into algo. matrix
     result = np.zeros((ar*rb, ar))
     for i in range(ar*rb):
         for j in range(ar):
             result[i,j] = m[ma+j+1+i/rb, ar-i%rb]
+    #print result
+
     _, s, _ = np.linalg.svd(result)
+    # normalized sigular vectors
     return s/s[0]
 
 def task_cx(pcs, testing_order, winsize, r, slicing, snr, noise_type):
