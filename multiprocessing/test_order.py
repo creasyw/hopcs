@@ -5,7 +5,6 @@ import impulse_response as ir
 from multiprocessing import Process
 from multiprocessing import Pool
 
-
 def ar_estimate(sig, pcs, ar, ma, winsize):
     if len(pcs) != 3:
         raise ValueError("The ar estimate could only handle 3rd-order cumulant")
@@ -21,6 +20,8 @@ def ar_estimate(sig, pcs, ar, ma, winsize):
     for i in range(ar*rb):
         for j in range(ar):
             result[i,j] = m[ma+j+1+i/rb, ar-i%rb]
+    _, s, _ = np.linalg.svd(result)
+    return s/s[0]
 
 def task_cx(pcs, testing_order, winsize, r, slicing, snr, noise_type):
     if snr > 100:
