@@ -36,7 +36,33 @@ def ma_order():
     job.close()
     job.join()
 
+def ar_order():
+    job = Pool(8)
+    r = 50
+    winsize = 512
+
+    # snr = +inf
+    pcs = [1,2,3]
+    ar = 5
+    ma = 0
+    for slicing in range(5000,50001,10000):
+        job.apply_async(pcs_ar, args=(pcs, ar, ma, winsize, r, slicing, 500, "white"))
+        for snr in range(-10,21):
+            job.apply_async(pcs_ar, args=(pcs, ar, ma, winsize, r, slicing, snr, "white"))
+            job.apply_async(pcs_ar, args=(pcs, ar, ma, winsize, r, slicing, snr, "color"))
+
+    #benchmark for non-PCS
+    slicing = 5000
+    pcs = [1,1,1]
+    job.apply_async(pcs_ar, args=(pcs, ar, ma, winsize, r, slicing, 500, "white"))
+    for snr in range(-10,21):
+        job.apply_async(pcs_ar, args=(pcs, ar, ma, winsize, r, slicing, snr, "white"))
+        job.apply_async(pcs_ar, args=(pcs, ar, ma, winsize, r, slicing, snr, "color"))
+
+    job.close()
+    job.join()
+
 if __name__ == "__main__":
-    main()
+    ar_order()
 
 
