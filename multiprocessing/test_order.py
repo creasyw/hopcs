@@ -8,14 +8,14 @@ from multiprocessing import Pool
 def ar_estimate(sig, pcs, ar, ma, winsize):
     if len(pcs) != 3:
         raise ValueError("The ar estimate could only handle 3rd-order cumulant")
-    m = np.zeros((ar+1, 2*ar))
-    for p in range(ar+1):
-        temp = cumx(sig, pcs, 3, 2*ar-1, winsize, 0, -1*p)
+    rb = ma+ar+1
+    m = np.zeros((rb, 2*ar+ma))
+    for p in range(rb):
+        temp = cumx(sig, pcs, 3, 2*ar+ma-1, winsize, 0, p-ar)
         m[p,0] = temp[len(temp)/2]
         m[p,1:] = (temp[:len(temp)/2][::-1]+temp[len(temp)/2+1:])/2
     m = m.T
     # put the cumulants into algo. matrix
-    rb = ma+ar+1
     result = np.zeros((ar*rb, ar))
     for i in range(ar*rb):
         for j in range(ar):
