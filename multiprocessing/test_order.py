@@ -5,6 +5,23 @@ import impulse_response as ir
 from multiprocessing import Process
 from multiprocessing import Pool
 
+
+def ar_estimate(sig, pcs, ar, ma, winsize):
+    if len(pcs) != 3:
+        raise ValueError("The ar estimate could only handle 3rd-order cumulant")
+    m = np.zeros((ar+1, 2*ar))
+    for p in range(ar+1):
+        temp = cumx(sig, pcs, 3, 2*ar-1, winsize, 0, p)
+        m[p,0] = temp[len(temp)/2]
+        m[p,1:] = (temp[:len(temp)/2]+temp[len(temp)/2+1:])/2
+    m = m.T
+    # put the cumulants into algo. matrix
+    rb = ma+ar+1
+    result = np.zeros((ar*rb, ar))
+    for i in range(ar*rb):
+        for j in range(ar):
+            result[i,j] = m[ma+i/rb+1, i%rb-ar]
+
 def task_cx(pcs, testing_order, winsize, r, slicing, snr, noise_type):
     if snr > 100:
         f = open("result/cx_testorder%s_hos%d_winsize%d_slice%d_snr%d.csv"%(testing_order, len(pcs), winsize, slicing, snr), 'w')
