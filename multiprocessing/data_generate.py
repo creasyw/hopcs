@@ -71,7 +71,7 @@ def arma_channel(sig_ar_tap, sig_ma_tap, noise_ar_tap, noise_ma_tap, i):
     signal = np.load("/home/creasy/workplace/data/exp_deviate_one_%d.npy"%(i))[:60000]
     receive = lfilter(sig_ma_tap, sig_ar_tap, signal)
     # save signal snr=+inf
-    np.save("temp/ar_data_%d.npy"%(i), receive)
+    np.save("temp/arma_data_%d.npy"%(i), receive)
     sig_power = (sum(sig_ar_tap)+sum(sig_ma_tap))**2
     noise_power = (sum(noise_ar_tap)+sum(noise_ma_tap))**2
 
