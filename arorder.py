@@ -34,21 +34,21 @@ def pcs_ar(pcs, ar, ma, winsize, mc_round, slicing, snr, noise_type):
         noice_type: white or color.
     """
     if snr > 100:
-        f = open("result/ar_ar%sma%s_hos%d_winsize%d_slice%d_snr%d.csv"%(ar, ma, len(pcs), winsize, slicing, snr), 'w')
+        f = open("result/ar_ar%sma%s_hos%d_winsize%d_slice%d_snr%d_pcs%s.csv"%(ar, ma, len(pcs), winsize, slicing, snr, ''.join([str(k) for k in pcs]) ), 'w')
         for i in range(mc_round):
             receive = np.load("temp/ar_data_%d.npy"%(i))[:slicing]
             temp = ar_estimate(receive, pcs, ar, ma, winsize)
             f.write('%s\n' % temp)
             print "snr=+inf, ", temp
     elif noise_type=="white":
-        f = open("result/ar_ar%sma%s_hos%d_winsize%d_slice%d_white_snr%d.csv"%(ar, ma, len(pcs), winsize, slicing, snr), 'w')
+        f = open("result/ar_ar%sma%s_hos%d_winsize%d_slice%d_white_snr%d_pcs%s.csv"%(ar, ma, len(pcs), winsize, slicing, snr, ''.join([str(k) for k in pcs]) ), 'w')
         for i in range(mc_round):
             receive = np.load("temp/ar_data_white_%d_%d.npy"%(snr, i))[:slicing]
             temp = ar_estimate(receive, pcs, ar, ma, winsize)
             f.write('%s\n' % temp)
             print "white noise, snr=%d, "%(snr), temp
     elif noise_type=="color":
-        f = open("result/ar_ar%sma%s_hos%d_winsize%d_slice%d_color_snr%d.csv"%(ar, ma, len(pcs), winsize, slicing, snr), 'w')
+        f = open("result/ar_ar%sma%s_hos%d_winsize%d_slice%d_color_snr%d_pcs%s.csv"%(ar, ma, len(pcs), winsize, slicing, snr, ''.join([str(k) for k in pcs])), 'w')
         for i in range(mc_round):
             receive = np.load("temp/ar_data_color_%d_%d.npy"%(snr, i))[:slicing]
             temp = ar_estimate(receive, pcs, ar, ma, winsize)
