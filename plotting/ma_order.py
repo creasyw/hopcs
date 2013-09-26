@@ -67,12 +67,16 @@ def hist_plot_two_y(m, n, p, mv, nv, pv, filename):
     ax = plt.subplot(111)
     common_params = dict(bins=len(m), range=(0,len(m)), normed=False)
 
-    plt.hist((x,x,x), weights=(m,n,p), **common_params)
+    patterns = ('', '//', '.')
+    _, _, patches = plt.hist((x,x,x), weights=(m,n,p), color=('0.2','0.8','0.8'), \
+            label=["Autocorrelation", "HOS", "PCS-based HOS"], **common_params)
+    for patch,pattern in zip(patches, patterns):
+        [k.set_hatch(pattern) for k in patch]
 
     ax2 = plt.twinx()
-    ax2.plot(map(lambda i:i+0.5, x), np.array(mv)/np.array(m), linestyle=':', color='b', marker='o', linewidth=1)
-    ax2.plot(map(lambda i:i+0.5, x), np.array(nv)/np.array(n), linestyle='-.', color='g', marker='o', linewidth=1)
-    ax2.plot(map(lambda i:i+0.5, x), np.array(pv)/np.array(p), linestyle='-', color='r', marker='o', linewidth=1)
+    ax2.plot(map(lambda i:i+0.5, x), np.array(mv)/np.array(m), label="Autocorrelation", linestyle=':', color='b', marker='v', linewidth=1.5)
+    ax2.plot(map(lambda i:i+0.5, x), np.array(nv)/np.array(n), label="HOS", linestyle='-.', color='g', marker='^', linewidth=1.5)
+    ax2.plot(map(lambda i:i+0.5, x), np.array(pv)/np.array(p), label="PCS-based HOS", linestyle='-', color='r', marker='s', linewidth=1.5)
     formatter = FuncFormatter(to_percent)
     ax2.yaxis.set_major_formatter(formatter)
     ax2.yaxis.label.set_fontsize(15)
@@ -88,6 +92,7 @@ def hist_plot_two_y(m, n, p, mv, nv, pv, filename):
     ax.set_xlabel("Lags of the model", labelpad=10)
     plt.tight_layout()
     plt.grid(axis='y')
+    plt.legend(loc=9)
 
     plt.savefig(filename, format='pdf')
     plt.show()
@@ -116,6 +121,6 @@ def color_gaussian():
 
 
 if __name__ == "__main__":
-    nonoise_and_gaussian()
-    #color_gaussian()
+    #nonoise_and_gaussian()
+    color_gaussian()
 
