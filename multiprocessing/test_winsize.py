@@ -13,7 +13,7 @@ def task(pcs, taps, winsize, r):
 
   f = open("pcs_montecarlo_%s_ma%d_%d_%d.csv"%(file_tag, len(pcs), winsize, int(''.join(map(str,pcs)))), 'w')
   for i in range(r):
-    signal = np.load("/home/q80022617/work/data/exp_deviate_one_%d.npy"%(i))
+    signal = np.load("/home/work/data/exp_deviate_one_%d.npy"%(i))
     receive = ir.moving_average(taps, signal)
     temp = ma.maestx (receive, pcs, len(taps)-1, len(pcs), winsize)
     f.write('%s\n' % temp)
@@ -29,7 +29,7 @@ def task_com(pcs, taps, winsize, r):
 
   f = open("pcs_montecarlo_%s_ma%d_%d_%d.csv"%(file_tag, len(pcs), winsize, int(''.join(map(str,pcs)))), 'w')
   for i in range(r):
-    signal = np.load("/home/q80022617/work/data/exp_deviate_one_%d.npy"%(i))
+    signal = np.load("/home/work/data/exp_deviate_one_%d.npy"%(i))
     receive = ir.moving_average(taps, signal)
     temp = ma_com.maestx (receive, pcs, len(taps)-1, len(pcs), winsize)
     f.write('%s\n' % temp)

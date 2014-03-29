@@ -13,7 +13,7 @@ def task(pcs, taps, winsize, r, slicing):
 
   f = open("pcs_montecarlo_%s_ma%d_%d_slice%d_%d.csv"%(file_tag, len(pcs), winsize, slicing, int(''.join(map(str,pcs)))), 'w')
   for i in range(r):
-    signal = np.load("/home/q80022617/work/rsls/data/exp_deviate_one_%d.npy"%(i))[:slicing]
+    signal = np.load("/home/work/rsls/data/exp_deviate_one_%d.npy"%(i))[:slicing]
     receive = ir.moving_average(taps, signal)
     temp = ma.maestx (receive, pcs, len(taps)-1, len(pcs), winsize)
     f.write('%s\n' % temp)
@@ -29,7 +29,7 @@ def task_cx(pcs, taps, winsize, r, slicing):
 
   f = open("pcs_montecarlo_%s_cx%d_%d_%d_slice%d.csv"%(file_tag, len(pcs), winsize, int(''.join(map(str,pcs))), slicing), 'w')
   for i in range(r):
-    signal = np.load("/home/q80022617/work/rsls/data/exp_deviate_one_%d.npy"%(i))[:slicing]
+    signal = np.load("/home/work/rsls/data/exp_deviate_one_%d.npy"%(i))[:slicing]
     receive = ir.moving_average(taps, signal)
     temp = cx.cumx(receive, pcs, len(pcs), len(taps)-1, winsize)
     f.write('%s\n' % temp)
