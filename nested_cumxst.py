@@ -11,31 +11,9 @@ def sampling (signal, winsize, factor):
     """
     return np.array([signal[k] if (k%winsize)%factor==0 else 0 for k in range(len(signal))])
 
-def cum2x (y, nested_list, maxlag, nsamp, overlap):
+def cum2x (y, maxlag, nsamp, overlap):
     assert maxlag >= 0, " 'maxlag' must be non-negative!"
-
-    # preprocessing for the nested sampling
-    n1 = nested_list[0]
-    n2 = nested_list[1]
-    win = (n1+1)*n2
-    step = len(y)/win
-    for i in range(step):
-        pt = 0
-        minimum = maxint
-        cache = np.zeros((n2, win))
-        overall = np.var(y[i*win:(i+1)*win])
-        for j in range(n2):
-            cache[j] = y[i*win:(i+1)*win]
-            for k in range(n2):
-                if j==k: continue
-                cache[j][k*(n1+1):(k+1)*(n1+1)] = cache[j][j*(n1+1):(j+1)*(n1+1)]
-            estimate = np.var(cache[j])
-            if abs(overall-estimate)<minimum:
-                minimum = overall-estimate
-                pt = j
-        y[i*win:(i+1)*win] = cache[pt]
-    # done preprossing
-    x = y
+    x = y # cope with the lagacy code. need refactoring....
 
     if nsamp > len(x) or nsamp <= 0:
         nsamp = len(x)
@@ -66,7 +44,7 @@ def cum2x (y, nested_list, maxlag, nsamp, overlap):
     scale = 1./count
     return y_cum*scale
 
-def cum3x_pcs (x, y, z, maxlag=0, nsamp=1, overlap=0, k1=0):
+def cum3x_pcs (x, maxlag=0, nsamp=1, overlap=0, k1=0):
     """
     CUM3X Third-order cross-cumulants.
         x,y,z  - data vectors/matrices with identical dimensions
@@ -84,8 +62,9 @@ def cum3x_pcs (x, y, z, maxlag=0, nsamp=1, overlap=0, k1=0):
         y_cum:  estimated third-order cross cumulant,
                 E x^*(n)y(n+m)z(n+k1),   -maxlag <= m <= maxlag
     """
-    assert len(x) == len(y) == len(z), "the length of signal should be the same!"
     assert 0<=nsamp<=len(x), "The length of segment is illegal."
+    y = z = x
+
     overlap = overlap/100*nsamp
     nadvance = nsamp - overlap
     nrecs  = (len(x)-overlap)/nadvance
@@ -124,7 +103,7 @@ def cum3x_pcs (x, y, z, maxlag=0, nsamp=1, overlap=0, k1=0):
 
 # in this algo. (w, y, z) have the same priority, rotating them will not
 # affact the final results. In contrast, x has higher priority.
-def cum4x_pcs (w, x, y, z, maxlag=0, nsamp=1, overlap=0, k1=0, k2=0):
+def cum4x_pcs (w, maxlag=0, nsamp=1, overlap=0, k1=0, k2=0):
     """
     CUM4EST Fourth-order cumulants.
            Computes sample estimates of fourth-order cumulants
@@ -141,6 +120,7 @@ def cum4x_pcs (w, x, y, z, maxlag=0, nsamp=1, overlap=0, k1=0, k2=0):
            y_cum : estimated fourth-order cumulant slice
                   C4(m,k1,k2)  -maxlag <= m <= maxlag
     """
+    x = y = z = w
     length = len(x)
     assert length==len(y)==len(z)==len(w), "The four input signals should have same length!"
     assert maxlag>=0, "maxlag should be nonnegative!"
@@ -457,6 +437,37 @@ def test ():
     print cum4x(sampling(y,nsamp,2), sampling(y,nsamp,3), sampling(y,nsamp,5), sampling(y,nsamp,7), 2, 512, 0, 0, 0)
 
 
+def nested_smoothing(y, nested_list):
+    # preprocessing for the nested sampling
+    n1 = nested_list[0]
+    n2 = nested_list[1]
+    win = (n1+1)*n2
+    step = len(y)/win
+    for i in range(step):
+        pt = 0
+        minimum = maxint
+        cache = np.zeros((n2, win))
+        overall = np.var(y[i*win:(i+1)*win])
+        for j in range(n2):
+            # TODO: check if added np.array() changing anything
+            cache[j] = y[i*win:(i+1)*win]
+            for k in range(n2):
+                if j==k: continue
+                cache[j][k*(n1+1):(k+1)*(n1+1)] = cache[j][j*(n1+1):(j+1)*(n1+1)]
+            estimate = np.var(cache[j])
+            if abs(overall-estimate)<minimum:
+                minimum = overall-estimate
+                pt = j
+        y[i*win:(i+1)*win] = cache[pt]
+    # done preprossing
+    return y
+
+def multilevel_nest(y, nested_list):
+    iteration = len(nested_list)-1
+    for i in range(iteration):
+        y = nested_smoothing(y, nested_list[i:(i+2)])
+    return y
+
 def cumx (y, nested_list, norder=2,maxlag=0,nsamp=0,overlap=0,k1=0,k2=0):
     """
     CUMEST Second-, third- or fourth-order cumulants.
@@ -476,31 +487,21 @@ def cumx (y, nested_list, norder=2,maxlag=0,nsamp=0,overlap=0,k1=0,k2=0):
     if nsamp == 0: nsamp = len(y)
     result = []
 
-    if norder == 2:
-        assert len(pcs)>=2, "There is not sufficient PCS coefficients!"
-        return cum2x (y, nested_list[:2], maxlag, nsamp, overlap)
-    elif norder == 3:
-        assert len(pcs)>=3, "There is not sufficient PCS coefficients!"
-        result.append(cum3x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[1]), \
-                sampling(y,nsamp,pcs[2]), maxlag, nsamp, overlap, k1))
-        result.append(cum3x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[2]), \
-                sampling(y,nsamp,pcs[1]), maxlag, nsamp, overlap, k1))
-        result.append(cum3x_pcs (sampling(y,nsamp,pcs[2]), sampling(y,nsamp,pcs[0]), \
-                sampling(y,nsamp,pcs[1]), maxlag, nsamp, overlap, k1))
-    elif norder == 4:
-        assert len(pcs)>=4, "There is not sufficient PCS coefficients!"
+    y = multilevel_nest(y, nested_list)
 
-        # The current rotation assumes that the 1st and 2nd in pcs are 1
-        result.append(cum4x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[1]), sampling(y,nsamp,pcs[2]), \
-                sampling(y,nsamp,pcs[3]), maxlag, nsamp, overlap, k1, k2))
-        result.append(cum4x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[2]), sampling(y,nsamp,pcs[1]), \
-                sampling(y,nsamp,pcs[3]), maxlag, nsamp, overlap, k1, k2))
-        result.append(cum4x_pcs (sampling(y,nsamp,pcs[0]), sampling(y,nsamp,pcs[3]), sampling(y,nsamp,pcs[2]), \
-                sampling(y,nsamp,pcs[1]), maxlag, nsamp, overlap, k1, k2))
+    if norder == 2:
+        assert len(nested_list)>=2, "There is not sufficient PCS coefficients!"
+        return cum2x (y, maxlag, nsamp, overlap)
+    elif norder == 3:
+        assert len(nested_list)>=3, "There is not sufficient PCS coefficients!"
+        return cum3x_pcs(y, maxlag, nsamp, overlap, k1)
+    elif norder == 4:
+        assert len(neste_list)>=4, "There is not sufficient PCS coefficients!"
+        return cum4x_pcx(y, maxlag, nsamp, overlap, k1, k2)
+
     else:
         raise Exception("Cumulant order must be 2, 3, or 4!")
     
-    return np.mean(np.array(result), 0)
 
 if __name__=="__main__":
     test()
