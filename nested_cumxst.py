@@ -14,6 +14,29 @@ def sampling (signal, winsize, factor):
 def cum2x (y, nested_list, maxlag, nsamp, overlap):
     assert maxlag >= 0, " 'maxlag' must be non-negative!"
 
+    # preprocessing for the nested sampling
+    n1 = nested_list[0]
+    n2 = nested_list[1]
+    win = (n1+1)*n2
+    step = len(y)/win
+    for i in range(step):
+        pt = 0
+        minimum = maxint
+        cache = np.zeros((n2, win))
+        overall = np.var(y[i*win:(i+1)*win])
+        for j in range(n2):
+            cache[j] = y[i*win:(i+1)*win]
+            for k in range(n2):
+                if j==k: continue
+                cache[j][k*(n1+1):(k+1)*(n1+1)] = cache[j][j*(n1+1):(j+1)*(n1+1)]
+            estimate = np.var(cache[j])
+            if abs(overall-estimate)<minimum:
+                minimum = overall-estimate
+                pt = j
+        y[i*win:(i+1)*win] = cache[pt]
+    # done preprossing
+    x = y
+
     if nsamp > len(x) or nsamp <= 0:
         nsamp = len(x)
     overlap = overlap/100*nsamp
