@@ -15,7 +15,7 @@ def percentage_3row (m):
     return np.sqrt(m[1::3,:])/ np.absolute(m[0::3,:])
 
 
-def calculte(filename):
+def calculate(filename):
     finder = re.compile("\[|-?\d+\.\d*[eE]?[-+]?\d*|\]")
     result = []
     temp = []
@@ -130,7 +130,7 @@ def plottingma2(m, filename):
 
 if __name__ == "__main__":
     filename = "convergence_cx3_long_cumulant_pcs123.txt"
-    result = calculte(filename)
+    result = calculate(filename)
 
     filename = re.sub(".txt","",filename)+".pdf"
     matcher = re.compile("long|short|cx|ma")
