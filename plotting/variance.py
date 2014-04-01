@@ -49,7 +49,7 @@ def to_percent(y, position):
     else:
         return s + '%'
 
-def plottingcx5(m, filename):
+def plottingcx5(m):
     xlen = range(len(m))
     plt.plot(xlen, m[:,0], linestyle=":", marker="v", label=r'$c_{3y}(-2,0)$')
     plt.plot(xlen, m[:,1], linestyle=":", marker="^", label=r'$c_{3y}(-1,0)$')
@@ -67,7 +67,7 @@ def plottingcx5(m, filename):
     plt.savefig(filename, format='pdf')
     plt.show()
 
-def plottingcx11(m, filename):
+def plottingcx11(m):
     xlen = range(len(m))
     ax = plt.gca()
     plt.plot(xlen, m[:,0], linestyle=":", marker="*", label=r'$c_{3y}(-5,0)$')
@@ -92,7 +92,7 @@ def plottingcx11(m, filename):
     plt.savefig(filename, format='pdf')
     plt.show()
 
-def plottingma5(m, filename):
+def plottingma5(m):
     xlen = range(len(m))
     ax = plt.gca()
     plt.plot(xlen, m[:,1], "-", label=r'$tap_1$')
@@ -111,7 +111,7 @@ def plottingma5(m, filename):
     plt.savefig(filename, format='pdf')
     plt.show()
 
-def plottingma2(m, filename):
+def plottingma2(m):
     xlen = range(len(m))
     ax = plt.gca()
     plt.plot(xlen, m[:,1], "-", label=r'$tap_1$')
@@ -124,8 +124,6 @@ def plottingma2(m, filename):
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2)
     plt.grid()
-    plt.savefig(filename, format='pdf')
-    plt.show()
 
 
 if __name__ == "__main__":
@@ -136,13 +134,15 @@ if __name__ == "__main__":
     matcher = re.compile("long|short|cx|ma")
     matched = matcher.findall(filename)
     if "long" in matched and "cx" in matched:
-        plottingcx11(percentage(result), filename)
+        plottingcx11(percentage(result))
     elif "short" in matched and "cx" in matched:
-        plottingcx5(percentage(result), filename)
+        plottingcx5(percentage(result))
     elif "long" in matched and "ma" in matched:
-        plottingma5(percentage_3row(result), filename)
+        plottingma5(percentage_3row(result))
     elif "short" in matched and "ma" in matched:
-        plottingma2(percentage_3row(result), filename)
+        plottingma2(percentage_3row(result))
     else:
         print "You might need to add more plotting functions..."
+    plt.savefig(filename, format='pdf')
+    plt.show()
 
