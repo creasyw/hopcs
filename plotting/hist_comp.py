@@ -19,7 +19,9 @@ def hist_plot(m, n, p):
     ax = plt.subplot(111)
     common_params = dict(bins=7, range=(0,7), normed=False)
 
-    plt.hist((x,x,x), weights=(m,n,p), **common_params)
+    plt.hist((x,x,x), weights=(m,n,p), label=["PCS-HOS", "HOS: same complexity", "HOS: same length"], **common_params)
+    #plt.legend()
+    lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=3, fancybox=True, shadow=True)
 
     ax2 = plt.twinx()
     ax2.plot(map(lambda i:i+0.5, x), np.array(m)/np.array(n), linestyle='-.', color='k', marker='o', linewidth=2)
@@ -37,7 +39,7 @@ def hist_plot(m, n, p):
     plt.tight_layout()
     plt.grid(axis='y')
 
-    plt.savefig("pcs3_vs_benchmark.pdf", format='pdf')
+    plt.savefig("pcs3_vs_benchmark.pdf", format='pdf',  bbox_extra_artists=(lgd,), bbox_inches='tight')
     plt.show()
 
 if __name__ == "__main__":
@@ -50,5 +52,3 @@ if __name__ == "__main__":
     bchmk_short = [0.28251416, 0.01283398]
     
     hist_plot(m3_short+m3_long, b10000_short+b10000_long, bchmk_short+bchmk_long)
-
-
