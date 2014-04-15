@@ -37,7 +37,7 @@ def hist_plot_one_y(m, n, p, m1, n1, p1, filename):
     ax1.set_xticklabels(names)
     ax1.set_ylabel("Amplitude of cumulants", labelpad=10)
     ax1.set_xlabel("Lags of the model", labelpad=10)
-    plt.legend()
+    plt.legend(fancybox=True, shadow=True)
     plt.tight_layout()
     plt.grid(axis='y')
 
@@ -57,7 +57,7 @@ def hist_plot_one_y(m, n, p, m1, n1, p1, filename):
     plt.grid(axis='y')
 
     plt.tight_layout()
-    plt.legend()
+    plt.legend(fancybox=True, shadow=True)
     plt.savefig(filename, format='pdf')
     plt.show()
 
@@ -92,7 +92,7 @@ def hist_plot_two_y(m, n, p, mv, nv, pv, filename):
     ax.set_xlabel("Lags of the model", labelpad=10)
     plt.tight_layout()
     plt.grid(axis='y')
-    plt.legend(loc=9)
+    plt.legend(loc=9, fancybox=True, shadow=True)
 
     plt.savefig(filename, format='pdf')
     plt.show()
@@ -121,5 +121,5 @@ def color_gaussian():
 
 
 if __name__ == "__main__":
-    nonoise_and_gaussian()
-    #color_gaussian()
+    #nonoise_and_gaussian()
+    color_gaussian()
