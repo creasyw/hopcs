@@ -95,6 +95,21 @@ def test_coprime (input):
             if gcd(input[i],input[j])!=1: return False
     return True
 
+
+def mapping(pcs):
+    product = reduce(lambda x,y: x*y, pcs)
+    result = {}
+    dict = {}
+    for i in pcs:
+        dict[i] = [k for k in range(-product, product) if k%i==0]
+    # only consider 2nd order
+    # cross-difference
+    for i in dict[pcs[0]]:
+        for j in dict[pcs[1]]:
+            if abs(i-j)<product:
+                result[hex(i)+hex(j)] = abs(i-j)
+    return result
+
 def sampling (signal, NFFT, clist):
     """
     Return the co-prime sampled signals.
