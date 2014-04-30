@@ -3,6 +3,7 @@ import numpy as np
 from math import ceil, log
 from fractions import gcd
 import matplotlib.pyplot as plt
+from itertools import combinations
 
 norm = lambda m: (reduce(lambda acc, itr: acc+itr**2, m, 0))**0.5
 
@@ -95,19 +96,32 @@ def test_coprime (input):
             if gcd(input[i],input[j])!=1: return False
     return True
 
-
-def mapping(pcs):
-    product = reduce(lambda x,y: x*y, pcs)
-    result = {}
+def mapping(coprime_pair):
+    product = reduce(lambda x,y: x*y, coprime_pair)
+    result = defaultdict(list)
     dict = {}
-    for i in pcs:
+    for i in coprime_pair:
         dict[i] = [k for k in range(-product, product) if k%i==0]
-    # only consider 2nd order
+
+    # a modification of itertools.product so that it accepts list of candidates
+    def product1(pools, repeat):
+        pools = map(tuple, pools) * repeat
+        result = [[]]
+        for pool in pools:
+            result = [x+[y] for x in result for y in pool]
+        for prod in result:
+            yield tuple(prod)
+
     # cross-difference
-    for i in dict[pcs[0]]:
-        for j in dict[pcs[1]]:
-            if abs(i-j)<product:
-                result[hex(i)+hex(j)] = abs(i-j)
+    for pairs in product1([dict[k] for k in dict], 1):
+        if abs(pairs[0]-pairs[1])<product:
+            result[abs(pairs[0]-pairs[1])].append([pairs[0], pairs[1]])
+    # self-difference
+    for index in dict:
+        for pairs in combinations(dict[index], 2):
+            if abs(pairs[0]-pairs[1])<product:
+                result[abs(pairs[0]-pairs[1])].append([pairs[0], pairs[1]])
+
     return result
 
 def sampling (signal, NFFT, clist):
