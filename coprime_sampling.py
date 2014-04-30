@@ -3,7 +3,7 @@ import numpy as np
 from math import ceil, log
 from fractions import gcd
 import matplotlib.pyplot as plt
-from itertools import combinations
+from itertools import product
 
 norm = lambda m: (reduce(lambda acc, itr: acc+itr**2, m, 0))**0.5
 
@@ -97,32 +97,19 @@ def test_coprime (input):
     return True
 
 def mapping(coprime_pair):
-    product = reduce(lambda x,y: x*y, coprime_pair)
+    N = reduce(lambda x,y: x*y, coprime_pair)
     result = defaultdict(list)
     dict = {}
+    signal = set()
     for i in coprime_pair:
-        dict[i] = [k for k in range(-product, product) if k%i==0]
+        signal |= set([k for k in range(-N, N) if k%i==0])
+    signal = sorted(list(signal))
 
-    # a modification of itertools.product so that it accepts list of candidates
-    def product1(pools, repeat):
-        pools = map(tuple, pools) * repeat
-        result = [[]]
-        for pool in pools:
-            result = [x+[y] for x in result for y in pool]
-        for prod in result:
-            yield tuple(prod)
-
-    # cross-difference
-    for pairs in product1([dict[k] for k in dict], 1):
-        if abs(pairs[0]-pairs[1])<product:
+    for pairs in product(signal, repeat=2):
+        if abs(pairs[0]-pairs[1])<N:
             result[abs(pairs[0]-pairs[1])].append([pairs[0], pairs[1]])
-    # self-difference
-    for index in dict:
-        for pairs in combinations(dict[index], 2):
-            if abs(pairs[0]-pairs[1])<product:
-                result[abs(pairs[0]-pairs[1])].append([pairs[0], pairs[1]])
-
     return result
+
 
 def sampling (signal, NFFT, clist):
     """
