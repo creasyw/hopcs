@@ -21,14 +21,14 @@ def hist_plot_one_y(m, n, p, m1, n1, p1, filename):
     # The original setting is 8,6
     # lookup via "matplotlib.rcParams.values"
     rcParams['figure.figsize'] = 8, 8
-    #patterns = ('', '//', '.')
+    patterns = ('//', '', '\\')
     names = ["lag#0","lag#1","lag#2","lag#3","lag#4","lag#5","lag#6"]
 
     ax1 = plt.subplot(211)
     _, _, patches = plt.hist((x,x,x), weights=(m,n,p), \
             label=["Autocorrelation", "HOS", "PCS-based HOS"], **common_params)
-#     for patch,pattern in zip(patches, patterns):
-#         [k.set_hatch(pattern) for k in patch]
+    for patch,pattern in zip(patches, patterns):
+        [k.set_hatch(pattern) for k in patch]
 
     ax1.xaxis.label.set_fontsize(15)
     ax1.yaxis.label.set_fontsize(15)
@@ -44,8 +44,8 @@ def hist_plot_one_y(m, n, p, m1, n1, p1, filename):
     ax1 = plt.subplot(212)
     _, _, patches = plt.hist((x,x,x), weights=(m1,n1,p1), \
             label=["Autocorrelation", "HOS", "PCS-based HOS"], **common_params)
-#     for patch,pattern in zip(patches, patterns):
-#         [k.set_hatch(pattern) for k in patch]
+    for patch,pattern in zip(patches, patterns):
+        [k.set_hatch(pattern) for k in patch]
     ax1.xaxis.label.set_fontsize(15)
     ax1.yaxis.label.set_fontsize(15)
     ax1.set_xticks([k+0.5 for k in range(7)])
@@ -67,11 +67,11 @@ def hist_plot_two_y(m, n, p, mv, nv, pv, filename):
     ax = plt.subplot(111)
     common_params = dict(bins=len(m), range=(0,len(m)), normed=False)
 
-    #patterns = ('', '//', '.')
+    patterns = ('//', '', '\\')
     _, _, patches = plt.hist((x,x,x), weights=(m,n,p), \
             label=["Autocorrelation", "HOS", "PCS-based HOS"], **common_params)
-#     for patch,pattern in zip(patches, patterns):
-#         [k.set_hatch(pattern) for k in patch]
+    for patch,pattern in zip(patches, patterns):
+        [k.set_hatch(pattern) for k in patch]
 
     ax2 = plt.twinx()
     ax2.plot(map(lambda i:i+0.5, x), np.array(mv)/np.array(m), label="Autocorrelation", linestyle=':', color='b', marker='v', linewidth=1.5)

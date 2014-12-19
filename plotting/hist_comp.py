@@ -19,7 +19,10 @@ def hist_plot(m, n, p):
     ax = plt.subplot(111)
     common_params = dict(bins=7, range=(0,7), normed=False)
 
-    plt.hist((x,x,x), weights=(m,n,p), label=["PCS-HOS", "HOS: same complexity", "HOS: same length"], **common_params)
+    patterns = ('//', '', '\\')
+    _, _, patches = plt.hist((x,x,x), weights=(m,n,p), label=["PCS-HOS", "HOS: same complexity", "HOS: same length"], **common_params)
+    for patch,pattern in zip(patches, patterns):
+        [k.set_hatch(pattern) for k in patch]
     #plt.legend()
     lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=3, fancybox=True, shadow=True)
 
