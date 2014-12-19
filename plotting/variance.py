@@ -64,8 +64,6 @@ def plottingcx5(m):
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2, fontsize=15)
     plt.grid()
-    plt.savefig(filename, format='pdf')
-    plt.show()
 
 def plottingcx11(m):
     xlen = range(len(m))
@@ -89,8 +87,6 @@ def plottingcx11(m):
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2, fontsize=15)
     plt.grid()
-    plt.savefig(filename, format='pdf')
-    plt.show()
 
 def plottingma5(m):
     xlen = range(len(m))
@@ -108,8 +104,6 @@ def plottingma5(m):
     plt.gca().yaxis.set_major_formatter(formatter)
     plt.legend(loc=0, ncol=2, fontsize=15)
     plt.grid()
-    plt.savefig(filename, format='pdf')
-    plt.show()
 
 def plottingma2(m):
     xlen = range(len(m))
@@ -127,7 +121,7 @@ def plottingma2(m):
 
 
 if __name__ == "__main__":
-    filename = "convergence_cx3_long_cumulant_pcs123.txt"
+    filename = "convergence_ma3_short_cumulant_pcs123.txt"
     result = calculate(filename)
 
     filename = re.sub(".txt","",filename)+".pdf"
